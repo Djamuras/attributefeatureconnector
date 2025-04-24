@@ -51,7 +51,16 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         $attribute_options = [];
         
         foreach ($attribute_groups as $group) {
-            $attributes = Attribute::getAttributes($this->context->language->id, $group['id_attribute_group']);
+            // Use direct DB query as a replacement for Attribute::getAttributes
+            $attributes = Db::getInstance()->executeS('
+                SELECT a.id_attribute, al.name
+                FROM ' . _DB_PREFIX_ . 'attribute a
+                LEFT JOIN ' . _DB_PREFIX_ . 'attribute_lang al 
+                    ON (a.id_attribute = al.id_attribute AND al.id_lang = ' . (int)$this->context->language->id . ')
+                WHERE a.id_attribute_group = ' . (int)$group['id_attribute_group'] . '
+                ORDER BY a.position ASC
+            ');
+            
             foreach ($attributes as $attribute) {
                 $attribute_options[] = [
                     'id' => $attribute['id_attribute'],
