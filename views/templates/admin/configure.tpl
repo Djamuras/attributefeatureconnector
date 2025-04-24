@@ -63,7 +63,7 @@
                 <tbody>
                     {foreach $mappings as $mapping}
                         <tr>
-                            <td>{$mapping.name}</td>
+                            <td>{$mapping.feature_name}</td>
                             <td>{$mapping.value}</td>
                             <td>{$mapping.attributes}</td>
                             <td>

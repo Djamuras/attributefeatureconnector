@@ -121,13 +121,10 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         $query->select('afm.*, fvl.value, f.name as feature_name, GROUP_CONCAT(al.name SEPARATOR ", ") as attributes')
             ->from('attribute_feature_mapping', 'afm')
             ->leftJoin('attribute_feature_mapping_attributes', 'afma', 'afm.id_mapping = afma.id_mapping')
-            ->leftJoin('feature_value_lang', 'fvl', 'afm.id_feature_value = fvl.id_feature_value')
+            ->leftJoin('feature_value_lang', 'fvl', 'afm.id_feature_value = fvl.id_feature_value AND fvl.id_lang = ' . (int)$this->context->language->id)
             ->leftJoin('feature_value', 'fv', 'fvl.id_feature_value = fv.id_feature_value')
-            ->leftJoin('feature_lang', 'f', 'fv.id_feature = f.id_feature')
-            ->leftJoin('attribute_lang', 'al', 'afma.id_attribute = al.id_attribute')
-            ->where('fvl.id_lang = ' . (int)$this->context->language->id)
-            ->where('f.id_lang = ' . (int)$this->context->language->id)
-            ->where('al.id_lang = ' . (int)$this->context->language->id)
+            ->leftJoin('feature_lang', 'f', 'fv.id_feature = f.id_feature AND f.id_lang = ' . (int)$this->context->language->id)
+            ->leftJoin('attribute_lang', 'al', 'afma.id_attribute = al.id_attribute AND al.id_lang = ' . (int)$this->context->language->id)
             ->groupBy('afm.id_mapping');
         
         $result = Db::getInstance()->executeS($query);
