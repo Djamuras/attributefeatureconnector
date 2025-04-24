@@ -72,12 +72,33 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         // Get existing mappings
         $mappings = $this->getMappings();
         
+        // Get mapping being edited if applicable
+        $mapping_to_edit = null;
+        $edit_mapping_id = (int)Tools::getValue('edit_mapping');
+        $selected_attributes = [];
+        
+        if ($edit_mapping_id) {
+            foreach ($mappings as $mapping) {
+                if ((int)$mapping['id_mapping'] === $edit_mapping_id) {
+                    $mapping_to_edit = $mapping;
+                    
+                    // Get selected attributes for this mapping
+                    $selected_attributes = $this->getAttributesForMapping($edit_mapping_id);
+                    break;
+                }
+            }
+        }
+        
         $this->context->smarty->assign([
             'feature_options' => $feature_options,
             'attribute_options' => $attribute_options,
             'mappings' => $mappings,
+            'mapping_to_edit' => $mapping_to_edit,
+            'selected_attributes' => $selected_attributes,
             'generate_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=generateFeatures',
             'delete_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=deleteMapping',
+            'edit_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=editMapping',
+            'cancel_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector'),
         ]);
         
         return $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'attributefeatureconnector/views/templates/admin/configure.tpl');
@@ -96,6 +117,17 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             
             $this->saveMapping($id_feature_value, $selected_attributes);
             $this->confirmations[] = $this->l('Mapping saved successfully');
+        } elseif (Tools::isSubmit('submitEditMapping')) {
+            $id_mapping = (int)Tools::getValue('id_mapping');
+            $selected_attributes = Tools::getValue('selected_attributes');
+            
+            if (!$id_mapping || !is_array($selected_attributes) || empty($selected_attributes)) {
+                $this->errors[] = $this->l('Please select at least one attribute');
+                return;
+            }
+            
+            $this->updateMapping($id_mapping, $selected_attributes);
+            $this->confirmations[] = $this->l('Mapping updated successfully');
         } elseif (Tools::getValue('action') === 'generateFeatures') {
             $result = $this->generateFeatures();
             if ($result['success']) {
@@ -134,6 +166,24 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         
         return $mappings;
     }
+
+    protected function getAttributesForMapping($id_mapping)
+    {
+        $attributes = [];
+        $query = new DbQuery();
+        $query->select('id_attribute')
+              ->from('attribute_feature_mapping_attributes')
+              ->where('id_mapping = ' . (int)$id_mapping);
+        
+        $result = Db::getInstance()->executeS($query);
+        if ($result) {
+            foreach ($result as $row) {
+                $attributes[] = $row['id_attribute'];
+            }
+        }
+        
+        return $attributes;
+    }
     
     protected function saveMapping($id_feature_value, $selected_attributes)
     {
@@ -148,6 +198,27 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         $id_mapping = (int)Db::getInstance()->Insert_ID();
         
         // Insert attribute relations
+        foreach ($selected_attributes as $id_attribute) {
+            Db::getInstance()->insert('attribute_feature_mapping_attributes', [
+                'id_mapping' => $id_mapping,
+                'id_attribute' => (int)$id_attribute,
+            ]);
+        }
+        
+        return true;
+    }
+
+    protected function updateMapping($id_mapping, $selected_attributes)
+    {
+        // Update mapping date
+        Db::getInstance()->update('attribute_feature_mapping', [
+            'date_upd' => date('Y-m-d H:i:s'),
+        ], 'id_mapping = ' . (int)$id_mapping);
+        
+        // Delete old attribute relations
+        Db::getInstance()->delete('attribute_feature_mapping_attributes', 'id_mapping = ' . (int)$id_mapping);
+        
+        // Insert new attribute relations
         foreach ($selected_attributes as $id_attribute) {
             Db::getInstance()->insert('attribute_feature_mapping_attributes', [
                 'id_mapping' => $id_mapping,

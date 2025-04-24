@@ -12,37 +12,67 @@
             <div class="alert alert-success">{$confirmation}</div>
         {/if}
         
-        <form id="mapping_form" class="form-horizontal" action="{$smarty.server.REQUEST_URI}" method="post">
-            <div class="form-group">
-                <label class="control-label col-lg-3">{l s='Select Feature Value' mod='attributefeatureconnector'}</label>
-                <div class="col-lg-9">
-                    <select name="id_feature_value" class="form-control">
-                        <option value="">{l s='-- Select Feature Value --' mod='attributefeatureconnector'}</option>
-                        {foreach $feature_options as $feature}
-                            <option value="{$feature.id}">{$feature.name}</option>
-                        {/foreach}
-                    </select>
+        {if $mapping_to_edit}
+            <form id="edit_mapping_form" class="form-horizontal" action="{$smarty.server.REQUEST_URI}" method="post">
+                <div class="panel-heading">
+                    <i class="icon-pencil"></i> {l s='Edit Mapping' mod='attributefeatureconnector'}: {$mapping_to_edit.feature_name} - {$mapping_to_edit.value}
                 </div>
-            </div>
-            
-            <div class="form-group">
-                <label class="control-label col-lg-3">{l s='Select Attributes' mod='attributefeatureconnector'}</label>
-                <div class="col-lg-9">
-                    <select name="selected_attributes[]" class="form-control" multiple="multiple" style="height: 250px;">
-                        {foreach $attribute_options as $attribute}
-                            <option value="{$attribute.id}">{$attribute.name}</option>
-                        {/foreach}
-                    </select>
-                    <p class="help-block">{l s='Hold Ctrl/Cmd to select multiple attributes' mod='attributefeatureconnector'}</p>
+                <input type="hidden" name="id_mapping" value="{$mapping_to_edit.id_mapping}" />
+                
+                <div class="form-group">
+                    <label class="control-label col-lg-3">{l s='Select Attributes' mod='attributefeatureconnector'}</label>
+                    <div class="col-lg-9">
+                        <select name="selected_attributes[]" class="form-control" multiple="multiple" style="height: 250px;">
+                            {foreach $attribute_options as $attribute}
+                                <option value="{$attribute.id}" {if in_array($attribute.id, $selected_attributes)}selected="selected"{/if}>{$attribute.name}</option>
+                            {/foreach}
+                        </select>
+                        <p class="help-block">{l s='Hold Ctrl/Cmd to select multiple attributes' mod='attributefeatureconnector'}</p>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="panel-footer">
-                <button type="submit" name="submitMapping" class="btn btn-default pull-right">
-                    <i class="process-icon-save"></i> {l s='Save Mapping' mod='attributefeatureconnector'}
-                </button>
-            </div>
-        </form>
+                
+                <div class="panel-footer">
+                    <a href="{$cancel_url}" class="btn btn-default">
+                        <i class="process-icon-cancel"></i> {l s='Cancel' mod='attributefeatureconnector'}
+                    </a>
+                    <button type="submit" name="submitEditMapping" class="btn btn-default pull-right">
+                        <i class="process-icon-save"></i> {l s='Update Mapping' mod='attributefeatureconnector'}
+                    </button>
+                </div>
+            </form>
+        {else}
+            <form id="mapping_form" class="form-horizontal" action="{$smarty.server.REQUEST_URI}" method="post">
+                <div class="form-group">
+                    <label class="control-label col-lg-3">{l s='Select Feature Value' mod='attributefeatureconnector'}</label>
+                    <div class="col-lg-9">
+                        <select name="id_feature_value" class="form-control">
+                            <option value="">{l s='-- Select Feature Value --' mod='attributefeatureconnector'}</option>
+                            {foreach $feature_options as $feature}
+                                <option value="{$feature.id}">{$feature.name}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="control-label col-lg-3">{l s='Select Attributes' mod='attributefeatureconnector'}</label>
+                    <div class="col-lg-9">
+                        <select name="selected_attributes[]" class="form-control" multiple="multiple" style="height: 250px;">
+                            {foreach $attribute_options as $attribute}
+                                <option value="{$attribute.id}">{$attribute.name}</option>
+                            {/foreach}
+                        </select>
+                        <p class="help-block">{l s='Hold Ctrl/Cmd to select multiple attributes' mod='attributefeatureconnector'}</p>
+                    </div>
+                </div>
+                
+                <div class="panel-footer">
+                    <button type="submit" name="submitMapping" class="btn btn-default pull-right">
+                        <i class="process-icon-save"></i> {l s='Save Mapping' mod='attributefeatureconnector'}
+                    </button>
+                </div>
+            </form>
+        {/if}
     </div>
     
     {if !empty($mappings)}
@@ -67,7 +97,10 @@
                             <td>{$mapping.value}</td>
                             <td>{$mapping.attributes}</td>
                             <td>
-                                <a href="{$delete_url}&id_mapping={$mapping.id_mapping}" class="btn btn-default" onclick="return confirm('{l s='Are you sure?' mod='attributefeatureconnector'}');">
+                                <a href="{$edit_url}&edit_mapping={$mapping.id_mapping}" class="btn btn-default btn-action">
+                                    <i class="icon-pencil"></i> {l s='Edit' mod='attributefeatureconnector'}
+                                </a>
+                                <a href="{$delete_url}&id_mapping={$mapping.id_mapping}" class="btn btn-default btn-action" onclick="return confirm('{l s='Are you sure?' mod='attributefeatureconnector'}');">
                                     <i class="icon-trash"></i> {l s='Delete' mod='attributefeatureconnector'}
                                 </a>
                             </td>
