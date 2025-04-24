@@ -110,12 +110,12 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         $mappings = [];
         $query = new DbQuery();
         $query->select('afm.*, fvl.value, f.name as feature_name, GROUP_CONCAT(al.name SEPARATOR ", ") as attributes')
-            ->from(_DB_PREFIX_ . 'attribute_feature_mapping', 'afm')
-            ->leftJoin(_DB_PREFIX_ . 'attribute_feature_mapping_attributes', 'afma', 'afm.id_mapping = afma.id_mapping')
-            ->leftJoin(_DB_PREFIX_ . 'feature_value_lang', 'fvl', 'afm.id_feature_value = fvl.id_feature_value')
-            ->leftJoin(_DB_PREFIX_ . 'feature_value', 'fv', 'fvl.id_feature_value = fv.id_feature_value')
-            ->leftJoin(_DB_PREFIX_ . 'feature_lang', 'f', 'fv.id_feature = f.id_feature')
-            ->leftJoin(_DB_PREFIX_ . 'attribute_lang', 'al', 'afma.id_attribute = al.id_attribute')
+            ->from('attribute_feature_mapping', 'afm')
+            ->leftJoin('attribute_feature_mapping_attributes', 'afma', 'afm.id_mapping = afma.id_mapping')
+            ->leftJoin('feature_value_lang', 'fvl', 'afm.id_feature_value = fvl.id_feature_value')
+            ->leftJoin('feature_value', 'fv', 'fvl.id_feature_value = fv.id_feature_value')
+            ->leftJoin('feature_lang', 'f', 'fv.id_feature = f.id_feature')
+            ->leftJoin('attribute_lang', 'al', 'afma.id_attribute = al.id_attribute')
             ->where('fvl.id_lang = ' . (int)$this->context->language->id)
             ->where('f.id_lang = ' . (int)$this->context->language->id)
             ->where('al.id_lang = ' . (int)$this->context->language->id)
@@ -138,12 +138,12 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             'date_upd' => date('Y-m-d H:i:s'),
         ];
         
-        Db::getInstance()->insert(_DB_PREFIX_ . 'attribute_feature_mapping', $mapping);
+        Db::getInstance()->insert('attribute_feature_mapping', $mapping);
         $id_mapping = (int)Db::getInstance()->Insert_ID();
         
         // Insert attribute relations
         foreach ($selected_attributes as $id_attribute) {
-            Db::getInstance()->insert(_DB_PREFIX_ . 'attribute_feature_mapping_attributes', [
+            Db::getInstance()->insert('attribute_feature_mapping_attributes', [
                 'id_mapping' => $id_mapping,
                 'id_attribute' => (int)$id_attribute,
             ]);
@@ -154,8 +154,8 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
     
     protected function deleteMapping($id_mapping)
     {
-        Db::getInstance()->delete(_DB_PREFIX_ . 'attribute_feature_mapping', 'id_mapping = ' . (int)$id_mapping);
-        Db::getInstance()->delete(_DB_PREFIX_ . 'attribute_feature_mapping_attributes', 'id_mapping = ' . (int)$id_mapping);
+        Db::getInstance()->delete('attribute_feature_mapping', 'id_mapping = ' . (int)$id_mapping);
+        Db::getInstance()->delete('attribute_feature_mapping_attributes', 'id_mapping = ' . (int)$id_mapping);
         
         return true;
     }
@@ -168,8 +168,8 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         $mappings = [];
         $query = new DbQuery();
         $query->select('afm.id_feature_value, afma.id_attribute')
-            ->from(_DB_PREFIX_ . 'attribute_feature_mapping', 'afm')
-            ->leftJoin(_DB_PREFIX_ . 'attribute_feature_mapping_attributes', 'afma', 'afm.id_mapping = afma.id_mapping');
+            ->from('attribute_feature_mapping', 'afm')
+            ->leftJoin('attribute_feature_mapping_attributes', 'afma', 'afm.id_mapping = afma.id_mapping');
         
         $result = Db::getInstance()->executeS($query);
         
@@ -218,7 +218,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
                 
                 if (!$exists) {
                     // Add feature to product
-                    Db::getInstance()->insert(_DB_PREFIX_ . 'feature_product', [
+                    Db::getInstance()->insert('feature_product', [
                         'id_feature' => $id_feature,
                         'id_product' => $id_product,
                         'id_feature_value' => $id_feature_value,
