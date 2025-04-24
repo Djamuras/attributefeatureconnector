@@ -97,21 +97,69 @@
                             <td>{$mapping.value}</td>
                             <td>{$mapping.attributes}</td>
                             <td>
-                                <a href="{$edit_url}&edit_mapping={$mapping.id_mapping}" class="btn btn-default btn-action">
-                                    <i class="icon-pencil"></i> {l s='Edit' mod='attributefeatureconnector'}
-                                </a>
-                                <a href="{$delete_url}&id_mapping={$mapping.id_mapping}" class="btn btn-default btn-action" onclick="return confirm('{l s='Are you sure?' mod='attributefeatureconnector'}');">
-                                    <i class="icon-trash"></i> {l s='Delete' mod='attributefeatureconnector'}
-                                </a>
+                                <div class="btn-group">
+                                    <a href="{$edit_url}&edit_mapping={$mapping.id_mapping}" class="btn btn-default btn-action">
+                                        <i class="icon-pencil"></i> {l s='Edit' mod='attributefeatureconnector'}
+                                    </a>
+                                    <a href="{$delete_url}&id_mapping={$mapping.id_mapping}" class="btn btn-default btn-action" onclick="return confirm('{l s='Are you sure?' mod='attributefeatureconnector'}');">
+                                        <i class="icon-trash"></i> {l s='Delete' mod='attributefeatureconnector'}
+                                    </a>
+                                    <a href="{$generate_mapping_url}{$mapping.id_mapping}" class="btn btn-success btn-action">
+                                        <i class="icon-refresh"></i> {l s='Generate Features' mod='attributefeatureconnector'}
+                                    </a>
+                                    <a href="{$undo_mapping_url}{$mapping.id_mapping}" class="btn btn-warning btn-action" onclick="return confirm('{l s='Are you sure you want to remove these features from products?' mod='attributefeatureconnector'}');">
+                                        <i class="icon-undo"></i> {l s='Undo Mapping' mod='attributefeatureconnector'}
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     {/foreach}
                 </tbody>
             </table>
             
+            {* Pagination *}
+            {if $total_pages > 1}
+                <div class="pagination">
+                    <ul class="pagination">
+                        {if isset($pagination_links.prev)}
+                            <li>
+                                <a href="{$pagination_links.prev}">
+                                    <i class="icon-chevron-left"></i>
+                                </a>
+                            </li>
+                        {else}
+                            <li class="disabled">
+                                <span><i class="icon-chevron-left"></i></span>
+                            </li>
+                        {/if}
+                        
+                        {foreach from=$pagination_links.pages key=p item=url}
+                            <li {if $p == $current_page}class="active"{/if}>
+                                <a href="{$url}">{$p}</a>
+                            </li>
+                        {/foreach}
+                        
+                        {if isset($pagination_links.next)}
+                            <li>
+                                <a href="{$pagination_links.next}">
+                                    <i class="icon-chevron-right"></i>
+                                </a>
+                            </li>
+                        {else}
+                            <li class="disabled">
+                                <span><i class="icon-chevron-right"></i></span>
+                            </li>
+                        {/if}
+                    </ul>
+                </div>
+                <div class="pagination-info">
+                    {l s='Showing %d to %d of %d mappings' sprintf=[$items_per_page * ($current_page-1) + 1, min($items_per_page * $current_page, $total_mappings), $total_mappings] mod='attributefeatureconnector'}
+                </div>
+            {/if}
+            
             <div class="panel-footer">
                 <a href="{$generate_url}" class="btn btn-primary">
-                    <i class="icon-refresh"></i> {l s='Generate Features' mod='attributefeatureconnector'}
+                    <i class="icon-refresh"></i> {l s='Generate ALL Features' mod='attributefeatureconnector'}
                 </a>
             </div>
         </div>

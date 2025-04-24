@@ -70,10 +70,25 @@
 /* Action buttons */
 .btn-action {
     margin-right: 5px;
+    margin-bottom: 5px;
 }
 
 .btn-action i {
     margin-right: 3px;
+}
+
+/* Pagination styling */
+.pagination {
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.pagination-info {
+    text-align: center;
+    color: #666;
+    margin-bottom: 15px;
+    font-style: italic;
 }
 
 /* Responsive fixes */
@@ -82,4 +97,19 @@
         text-align: left;
         margin-bottom: 5px;
     }
+    
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .btn-action {
+        margin-bottom: 5px;
+    }
+}
+
+/* Button group layout */
+.btn-group {
+    display: flex;
+    flex-wrap: wrap;
 }
