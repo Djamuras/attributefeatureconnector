@@ -1,0 +1,32 @@
+<?php
+
+global $_MODULE;
+$_MODULE = array();
+$_MODULE['<{attributefeatureconnector}prestashop>attributefeatureconnector_831a28f1e8df07c553fcd59546465d13'] = 'Attribute-Feature Connector';
+$_MODULE['<{attributefeatureconnector}prestashop>attributefeatureconnector_037b88c6be6716fd5a7e591d2549a2ef'] = 'Automatically assign features to products based on their attributes';
+$_MODULE['<{attributefeatureconnector}prestashop>attributefeatureconnector_876f23178c29dc2552c0b48bf23cd9bd'] = 'Are you sure you want to uninstall?';
+$_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_831a28f1e8df07c553fcd59546465d13'] = 'Attribute-Feature Connector';
+$_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_3adbdb3ac060038aa0e6e6c138ef9873'] = 'Category';
+$_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_32b919d18cfaca89383f6000dcc9c031'] = 'Generate Features';
+$_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_c9cc8cce247e49bae79f15173ce97354'] = 'Save';
+$_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_7dce122004969d56ae2e0245cb754d35'] = 'Edit';
+$_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_f2a6c498fb90ee345d997f888fce3b18'] = 'Delete';
+$_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_590fce07962595cf3e55e4cc926d6984'] = 'Please select a feature and at least one attribute';
+$_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_3a3a4c9c15a71bad40ac4d8d3692d152'] = 'Mapping saved successfully';
+$_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_e020bf1e85fbff43bc464fb4147fb1b7'] = 'Features generated successfully. %d products updated.';
+$_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_e77704b7feedf89cc855333474e55b21'] = 'Error generating features';
+$_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_9cdb3d623af8ac509b7166355319d856'] = 'Mapping deleted successfully';
+$_MODULE['<{attributefeatureconnector}prestashop>configure_831a28f1e8df07c553fcd59546465d13'] = 'Attribute-Feature Connector';
+$_MODULE['<{attributefeatureconnector}prestashop>configure_637ef5aa3af5e170c084668817ad1ac3'] = 'This module allows you to automatically assign features to products based on their attributes.';
+$_MODULE['<{attributefeatureconnector}prestashop>configure_bef2476b6490c95e2d9fc4a2bb2c2777'] = 'Select Feature Value';
+$_MODULE['<{attributefeatureconnector}prestashop>configure_0adc03dcb3dfde6f1e496c8ccefef3bc'] = '-- Select Feature Value --';
+$_MODULE['<{attributefeatureconnector}prestashop>configure_287234a1ff35a314b5b6bc4e5828e745'] = 'Select Attributes';
+$_MODULE['<{attributefeatureconnector}prestashop>configure_35ab290fc0078538d86a9e6954fa6a0b'] = 'Hold Ctrl/Cmd to select multiple attributes';
+$_MODULE['<{attributefeatureconnector}prestashop>configure_e3ed3d7a3d3618dbc3fb4d7c38243059'] = 'Save Mapping';
+$_MODULE['<{attributefeatureconnector}prestashop>configure_4e98a9d9c469bebb1a7bd77c16db7300'] = 'Current Mappings';
+$_MODULE['<{attributefeatureconnector}prestashop>configure_5eadf7a1ad8d7a94cb99b0a438fcb3ca'] = 'Feature';
+$_MODULE['<{attributefeatureconnector}prestashop>configure_961f2247a2070bedff9f9cd8d64e2650'] = 'Feature Value';
+$_MODULE['<{attributefeatureconnector}prestashop>configure_7c88706405fe75838a5a0b48760e59c6'] = 'Linked Attributes';
+$_MODULE['<{attributefeatureconnector}prestashop>configure_06df33001c1d7187fdd81ea1f5b277aa'] = 'Actions';
+$_MODULE['<{attributefeatureconnector}prestashop>configure_b6f4a2ec6f3e56e1cfdeb4cae0ff6b29'] = 'Are you sure?';
+$_MODULE['<{attributefeatureconnector}prestashop>configure_32b919d18cfaca89383f6000dcc9c031'] = 'Generate Features';

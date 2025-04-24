@@ -1,0 +1,86 @@
+<div class="bootstrap">
+    <div class="panel">
+        <div class="panel-heading">
+            <i class="icon-cogs"></i> {l s='Attribute-Feature Connector' mod='attributefeatureconnector'}
+        </div>
+        
+        <div class="alert alert-info">
+            {l s='This module allows you to automatically assign features to products based on their attributes.' mod='attributefeatureconnector'}
+        </div>
+        
+        {if isset($confirmation)}
+            <div class="alert alert-success">{$confirmation}</div>
+        {/if}
+        
+        <form id="mapping_form" class="form-horizontal" action="{$smarty.server.REQUEST_URI}" method="post">
+            <div class="form-group">
+                <label class="control-label col-lg-3">{l s='Select Feature Value' mod='attributefeatureconnector'}</label>
+                <div class="col-lg-9">
+                    <select name="id_feature_value" class="form-control">
+                        <option value="">{l s='-- Select Feature Value --' mod='attributefeatureconnector'}</option>
+                        {foreach $feature_options as $feature}
+                            <option value="{$feature.id}">{$feature.name}</option>
+                        {/foreach}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="control-label col-lg-3">{l s='Select Attributes' mod='attributefeatureconnector'}</label>
+                <div class="col-lg-9">
+                    <select name="selected_attributes[]" class="form-control" multiple="multiple" style="height: 250px;">
+                        {foreach $attribute_options as $attribute}
+                            <option value="{$attribute.id}">{$attribute.name}</option>
+                        {/foreach}
+                    </select>
+                    <p class="help-block">{l s='Hold Ctrl/Cmd to select multiple attributes' mod='attributefeatureconnector'}</p>
+                </div>
+            </div>
+            
+            <div class="panel-footer">
+                <button type="submit" name="submitMapping" class="btn btn-default pull-right">
+                    <i class="process-icon-save"></i> {l s='Save Mapping' mod='attributefeatureconnector'}
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    {if !empty($mappings)}
+        <div class="panel">
+            <div class="panel-heading">
+                <i class="icon-list"></i> {l s='Current Mappings' mod='attributefeatureconnector'}
+            </div>
+            
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>{l s='Feature' mod='attributefeatureconnector'}</th>
+                        <th>{l s='Feature Value' mod='attributefeatureconnector'}</th>
+                        <th>{l s='Linked Attributes' mod='attributefeatureconnector'}</th>
+                        <th>{l s='Actions' mod='attributefeatureconnector'}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {foreach $mappings as $mapping}
+                        <tr>
+                            <td>{$mapping.name}</td>
+                            <td>{$mapping.value}</td>
+                            <td>{$mapping.attributes}</td>
+                            <td>
+                                <a href="{$delete_url}&id_mapping={$mapping.id_mapping}" class="btn btn-default" onclick="return confirm('{l s='Are you sure?' mod='attributefeatureconnector'}');">
+                                    <i class="icon-trash"></i> {l s='Delete' mod='attributefeatureconnector'}
+                                </a>
+                            </td>
+                        </tr>
+                    {/foreach}
+                </tbody>
+            </table>
+            
+            <div class="panel-footer">
+                <a href="{$generate_url}" class="btn btn-primary">
+                    <i class="icon-refresh"></i> {l s='Generate Features' mod='attributefeatureconnector'}
+                </a>
+            </div>
+        </div>
+    {/if}
+</div>
