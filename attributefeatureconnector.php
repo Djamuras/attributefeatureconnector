@@ -9,7 +9,7 @@ class AttributeFeatureConnector extends Module
     {
         $this->name = 'attributefeatureconnector';
         $this->tab = 'administration';
-        $this->version = '1.0.10'; // Updated version
+        $this->version = '1.0.9';
         $this->author = 'Dainius';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = [
@@ -29,10 +29,6 @@ class AttributeFeatureConnector extends Module
     {
         include(dirname(__FILE__).'/sql/install.php');
         
-        // Generate a secure key for CRON access
-        $secure_key = Tools::substr(Tools::encrypt('attribute_feature_connector' . date('YmdHis') . _COOKIE_KEY_), 0, 32);
-        Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_SECURE_KEY', $secure_key);
-        
         return parent::install() &&
             $this->registerHook('actionAdminControllerSetMedia') &&
             $this->installTab();
@@ -41,8 +37,6 @@ class AttributeFeatureConnector extends Module
     public function uninstall()
     {
         include(dirname(__FILE__).'/sql/uninstall.php');
-        
-        Configuration::deleteByName('ATTRIBUTE_FEATURE_CONNECTOR_SECURE_KEY');
         
         return parent::uninstall() &&
             $this->uninstallTab();
@@ -77,40 +71,6 @@ class AttributeFeatureConnector extends Module
     public function getContent()
     {
         Tools::redirectAdmin($this->context->link->getAdminLink('AdminAttributeFeatureConnector'));
-    }
-    
-    /**
-     * Get CRON URL with security token
-     * 
-     * @return string CRON URL
-     */
-    public function getCronUrl()
-    {
-        $secure_key = Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_SECURE_KEY');
-        if (!$secure_key) {
-            // Generate new secure key if not exists
-            $secure_key = Tools::substr(Tools::encrypt('attribute_feature_connector' . date('YmdHis') . _COOKIE_KEY_), 0, 32);
-            Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_SECURE_KEY', $secure_key);
-        }
-        
-        return Context::getContext()->link->getModuleLink(
-            $this->name,
-            'cron',
-            ['secure_key' => $secure_key, 'action' => 'generate_all']
-        );
-    }
-    
-    /**
-     * Regenerate security token
-     * 
-     * @return string New security token
-     */
-    public function regenerateCronSecureKey()
-    {
-        $secure_key = Tools::substr(Tools::encrypt('attribute_feature_connector' . date('YmdHis') . _COOKIE_KEY_), 0, 32);
-        Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_SECURE_KEY', $secure_key);
-        
-        return $secure_key;
     }
 
     public function hookActionAdminControllerSetMedia()
