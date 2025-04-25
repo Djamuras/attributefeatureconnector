@@ -29,6 +29,10 @@ class AttributeFeatureConnector extends Module
     {
         include(dirname(__FILE__).'/sql/install.php');
         
+        // Generate a secure random token for CRON job
+        $token = bin2hex(random_bytes(16)); // 32 characters long
+        Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_CRON_TOKEN', $token);
+        
         return parent::install() &&
             $this->registerHook('actionAdminControllerSetMedia') &&
             $this->installTab();
@@ -37,6 +41,9 @@ class AttributeFeatureConnector extends Module
     public function uninstall()
     {
         include(dirname(__FILE__).'/sql/uninstall.php');
+        
+        // Remove configuration values
+        Configuration::deleteByName('ATTRIBUTE_FEATURE_CONNECTOR_CRON_TOKEN');
         
         return parent::uninstall() &&
             $this->uninstallTab();

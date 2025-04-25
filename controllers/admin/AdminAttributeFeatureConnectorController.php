@@ -128,6 +128,11 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         
         $pagination_links = $this->generatePaginationLinks($page, $total_pages);
         
+        // Get CRON token and URL
+        $cron_token = Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_CRON_TOKEN');
+        $shop_domain = Context::getContext()->shop->getBaseURL(true);
+        $cron_url = $shop_domain . 'index.php?fc=module&module=attributefeatureconnector&controller=cron&token=' . $cron_token;
+        
         $this->context->smarty->assign([
             'feature_options' => $feature_options,
             'attribute_options' => $attribute_options,
@@ -144,7 +149,9 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             'total_pages' => $total_pages,
             'pagination_links' => $pagination_links,
             'items_per_page' => $items_per_page,
-            'total_mappings' => $total_mappings
+            'total_mappings' => $total_mappings,
+            'cron_token' => $cron_token,
+            'cron_url' => $cron_url
         ]);
         
         return $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'attributefeatureconnector/views/templates/admin/configure.tpl');
@@ -201,6 +208,10 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             
             $this->updateMapping($id_mapping, $selected_attributes);
             $this->confirmations[] = $this->l('Mapping updated successfully');
+        } elseif (Tools::isSubmit('regenerate_cron_token')) {
+            $new_token = bin2hex(random_bytes(16)); // 32 characters long
+            Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_CRON_TOKEN', $new_token);
+            $this->confirmations[] = $this->l('CRON token regenerated successfully');
         } elseif (Tools::getValue('action') === 'generateAllFeatures') {
             $result = $this->generateAllFeatures();
             if ($result['success']) {
@@ -334,7 +345,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         return true;
     }
     
-    protected function generateAllFeatures()
+    public function generateAllFeatures()
     {
         $updated = 0;
         
