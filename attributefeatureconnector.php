@@ -9,8 +9,8 @@ class AttributeFeatureConnector extends Module
     {
         $this->name = 'attributefeatureconnector';
         $this->tab = 'administration';
-        $this->version = '1.0.0';
-        $this->author = 'Your Name';
+        $this->version = '1.0.9';
+        $this->author = 'Dainius';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = [
             'min' => '8.0.0',
