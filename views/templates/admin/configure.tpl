@@ -75,6 +75,76 @@
         {/if}
     </div>
     
+    <!-- CRON Job Panel -->
+    <div class="panel">
+        <div class="panel-heading">
+            <i class="icon-clock-o"></i> {l s='CRON Job Configuration' mod='attributefeatureconnector'}
+        </div>
+        
+        <div class="alert alert-info">
+            {l s='Set up a CRON job to automatically generate features for all products on a scheduled basis.' mod='attributefeatureconnector'}
+        </div>
+        
+        <div class="form-group">
+            <label class="control-label col-lg-3">{l s='CRON Job URL' mod='attributefeatureconnector'}</label>
+            <div class="col-lg-9">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="cron_url" value="{$cron_url}" readonly>
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" onclick="copyToClipboard('#cron_url')">
+                            <i class="icon-copy"></i> {l s='Copy' mod='attributefeatureconnector'}
+                        </button>
+                    </span>
+                </div>
+                <p class="help-block">
+                    {l s='Add this URL to your server\'s CRON jobs to automatically generate features for all products.' mod='attributefeatureconnector'}
+                </p>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="control-label col-lg-3">{l s='CRON Token' mod='attributefeatureconnector'}</label>
+            <div class="col-lg-9">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="cron_token" value="{$cron_token}" readonly>
+                    <span class="input-group-btn">
+                        <form method="post" action="{$smarty.server.REQUEST_URI}" style="display:inline;">
+                            <button class="btn btn-warning" type="submit" name="regenerate_cron_token" onclick="return confirm('{l s='Are you sure you want to regenerate the token? Any existing CRON jobs will need to be updated.' mod='attributefeatureconnector'}');">
+                                <i class="icon-refresh"></i> {l s='Regenerate Token' mod='attributefeatureconnector'}
+                            </button>
+                        </form>
+                    </span>
+                </div>
+                <p class="help-block">
+                    {l s='This token is used for security. Keep it secret and include it in your CRON job URL.' mod='attributefeatureconnector'}
+                </p>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="control-label col-lg-3">{l s='Example CRON Command' mod='attributefeatureconnector'}</label>
+            <div class="col-lg-9">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="cron_example" value="0 */6 * * * wget -q -O /dev/null '{$cron_url}'" readonly>
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" onclick="copyToClipboard('#cron_example')">
+                            <i class="icon-copy"></i> {l s='Copy' mod='attributefeatureconnector'}
+                        </button>
+                    </span>
+                </div>
+                <p class="help-block">
+                    {l s='This example runs every 6 hours. Adjust according to your needs.' mod='attributefeatureconnector'}
+                </p>
+            </div>
+        </div>
+        
+        <div class="panel-footer">
+            <a href="{$cron_url}" target="_blank" class="btn btn-primary" onclick="return confirm('{l s='This will execute the CRON job now. Continue?' mod='attributefeatureconnector'}');">
+                <i class="icon-play"></i> {l s='Run CRON Job Now' mod='attributefeatureconnector'}
+            </a>
+        </div>
+    </div>
+    
     {if !empty($mappings)}
         <div class="panel">
             <div class="panel-heading">

@@ -12,3 +12,27 @@ $(document).ready(function() {
         }
     });
 });
+
+// Function to copy text to clipboard
+function copyToClipboard(element) {
+    var $temp = $("<input>");
+    $("body").append($temp);
+    $temp.val($(element).val()).select();
+    document.execCommand("copy");
+    $temp.remove();
+    
+    // Show a brief success message
+    showCopySuccess();
+}
+
+// Display a temporary success message
+function showCopySuccess() {
+    var $message = $('<div class="alert alert-success copy-alert" style="position: fixed; top: 10%; left: 50%; transform: translateX(-50%); z-index: 9999; padding: 10px 20px;">Copied to clipboard!</div>');
+    $('body').append($message);
+    
+    setTimeout(function() {
+        $message.fadeOut(300, function() {
+            $(this).remove();
+        });
+    }, 2000);
+}
