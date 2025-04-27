@@ -28,6 +28,9 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
     
     public function renderConfigForm()
     {
+        // Get all already mapped feature values to exclude them from the list
+        $mapped_feature_values = $this->getMappedFeatureValues();
+        
         // Get all features
         $features = Feature::getFeatures($this->context->language->id);
         $feature_options = [];
@@ -39,10 +42,13 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             );
             
             foreach ($feature_values as $value) {
-                $feature_options[] = [
-                    'id' => $value['id_feature_value'],
-                    'name' => $feature['name'] . ' - ' . $value['value']
-                ];
+                // Only add the feature value if it's not already mapped
+                if (!in_array($value['id_feature_value'], $mapped_feature_values)) {
+                    $feature_options[] = [
+                        'id' => $value['id_feature_value'],
+                        'name' => $feature['name'] . ' - ' . $value['value']
+                    ];
+                }
             }
         }
         
@@ -155,6 +161,27 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         ]);
         
         return $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'attributefeatureconnector/views/templates/admin/configure.tpl');
+    }
+    
+    /**
+     * Get all feature values that have already been mapped
+     */
+    protected function getMappedFeatureValues()
+    {
+        $mapped_feature_values = [];
+        
+        $query = new DbQuery();
+        $query->select('id_feature_value')
+              ->from('attribute_feature_mapping');
+        
+        $result = Db::getInstance()->executeS($query);
+        if ($result) {
+            foreach ($result as $row) {
+                $mapped_feature_values[] = (int)$row['id_feature_value'];
+            }
+        }
+        
+        return $mapped_feature_values;
     }
     
     private function generatePaginationLinks($current_page, $total_pages)
