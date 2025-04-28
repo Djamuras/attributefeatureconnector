@@ -9,7 +9,7 @@ class AttributeFeatureConnector extends Module
     {
         $this->name = 'attributefeatureconnector';
         $this->tab = 'administration';
-        $this->version = '1.2.0';
+        $this->version = '1.3.0';
         $this->author = 'Dainius';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = [
@@ -21,7 +21,7 @@ class AttributeFeatureConnector extends Module
         parent::__construct();
 
         $this->displayName = $this->l('Attribute-Feature Connector');
-        $this->description = $this->l('Automatically assign features to products based on their attributes');
+        $this->description = $this->l('Automatically assign features to products based on their attributes or categories');
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
     }
 
@@ -39,7 +39,8 @@ class AttributeFeatureConnector extends Module
         return parent::install() &&
             $this->registerHook('actionAdminControllerSetMedia') &&
             $this->installTab('AdminAttributeFeatureConnector', 'Attribute-Feature Connector', 'AdminParentModulesSf') &&
-            $this->installTab('AdminAttributeFeatureAnalytics', 'Attribute-Feature Analytics', 'AdminParentModulesSf');
+            $this->installTab('AdminAttributeFeatureAnalytics', 'Attribute-Feature Analytics', 'AdminParentModulesSf') &&
+            $this->installTab('AdminCategoryFeatureMapping', 'Category-Feature Mapping', 'AdminParentModulesSf');
     }
 
     public function uninstall()
@@ -52,7 +53,8 @@ class AttributeFeatureConnector extends Module
         
         return parent::uninstall() &&
             $this->uninstallTab('AdminAttributeFeatureConnector') &&
-            $this->uninstallTab('AdminAttributeFeatureAnalytics');
+            $this->uninstallTab('AdminAttributeFeatureAnalytics') &&
+            $this->uninstallTab('AdminCategoryFeatureMapping');
     }
 
     protected function installTab($className, $tabName, $parentClassName)
@@ -96,6 +98,9 @@ class AttributeFeatureConnector extends Module
             $this->context->controller->addJS($this->_path.'views/js/admin.js');
             $this->context->controller->addCSS($this->_path.'views/css/admin.css');
             $this->context->controller->addJS('https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js');
+        } elseif ($controller === 'AdminCategoryFeatureMapping') {
+            $this->context->controller->addJS($this->_path.'views/js/admin.js');
+            $this->context->controller->addCSS($this->_path.'views/css/admin.css');
         }
     }
     
@@ -111,6 +116,14 @@ class AttributeFeatureConnector extends Module
             
             // Install the new admin tab for analytics
             $this->installTab('AdminAttributeFeatureAnalytics', 'Attribute-Feature Analytics', 'AdminParentModulesSf');
+        }
+        
+        if (version_compare($old_version, '1.3.0', '<')) {
+            // Execute update SQL for version 1.3.0
+            include(dirname(__FILE__).'/sql/update-1.3.0.php');
+            
+            // Install the new admin tab for category feature mapping
+            $this->installTab('AdminCategoryFeatureMapping', 'Category-Feature Mapping', 'AdminParentModulesSf');
         }
         
         return true;
@@ -143,5 +156,47 @@ class AttributeFeatureConnector extends Module
         } catch (Exception $e) {
             return false;
         }
+    }
+    
+    /**
+     * Get all feature values that are already mapped (to hide from dropdown)
+     */
+    public static function getMappedFeatureValues()
+    {
+        $query = new DbQuery();
+        $query->select('DISTINCT id_feature_value')
+              ->from('attribute_feature_mapping');
+              
+        $result = Db::getInstance()->executeS($query);
+        
+        $mappedValues = [];
+        if ($result) {
+            foreach ($result as $row) {
+                $mappedValues[] = (int)$row['id_feature_value'];
+            }
+        }
+        
+        return $mappedValues;
+    }
+    
+    /**
+     * Get all category mapped feature values
+     */
+    public static function getCategoryMappedFeatureValues()
+    {
+        $query = new DbQuery();
+        $query->select('DISTINCT id_feature_value')
+              ->from('category_feature_mapping');
+              
+        $result = Db::getInstance()->executeS($query);
+        
+        $mappedValues = [];
+        if ($result) {
+            foreach ($result as $row) {
+                $mappedValues[] = (int)$row['id_feature_value'];
+            }
+        }
+        
+        return $mappedValues;
     }
 }

@@ -5,12 +5,14 @@
 
 /* Form controls styling */
 #mapping_form .form-group,
-#edit_mapping_form .form-group {
+#edit_mapping_form .form-group,
+#category_mapping_form .form-group {
     margin-bottom: 20px;
 }
 
 #mapping_form select,
-#edit_mapping_form select {
+#edit_mapping_form select,
+#category_mapping_form select {
     width: 100%;
 }
 
@@ -469,6 +471,22 @@ select.form-control {
 /* Category filter dropdown */
 select[name="category_filter"] {
     min-width: 200px;
+}
+
+/* Category to Feature Mapping specific styles */
+.category-mapping-tab {
+    margin-bottom: 20px;
+}
+
+.category-mapping-tab .nav-tabs {
+    margin-bottom: 0;
+}
+
+.category-preview-info {
+    background-color: #f5f7f9;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
 }
 
 /* Responsive adjustments */

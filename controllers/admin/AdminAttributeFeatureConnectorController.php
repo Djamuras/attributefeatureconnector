@@ -28,9 +28,15 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
     
     public function renderConfigForm()
     {
-        // Get all features
+        // Get all features, excluding already mapped ones
         $features = Feature::getFeatures($this->context->language->id);
         $feature_options = [];
+        
+        // Get both attribute-mapped and category-mapped feature values
+        $mappedFeatureValues = array_merge(
+            AttributeFeatureConnector::getMappedFeatureValues(),
+            AttributeFeatureConnector::getCategoryMappedFeatureValues()
+        );
         
         foreach ($features as $feature) {
             $feature_values = FeatureValue::getFeatureValuesWithLang(
@@ -39,6 +45,11 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             );
             
             foreach ($feature_values as $value) {
+                // Skip already mapped feature values if not editing
+                if (!Tools::getValue('edit_mapping') && in_array($value['id_feature_value'], $mappedFeatureValues)) {
+                    continue;
+                }
+                
                 $feature_options[] = [
                     'id' => $value['id_feature_value'],
                     'name' => $feature['name'] . ' - ' . $value['value'],
@@ -172,6 +183,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             'edit_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=editMapping',
             'cancel_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector'),
             'analytics_url' => $this->context->link->getAdminLink('AdminAttributeFeatureAnalytics'),
+            'category_mapping_url' => $this->context->link->getAdminLink('AdminCategoryFeatureMapping'),
             'current_page' => $page,
             'total_pages' => $total_pages,
             'pagination_links' => $pagination_links,
@@ -455,7 +467,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
                 }
             }
         }
-        
+
         parent::postProcess();
     }
     
@@ -850,16 +862,27 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         return [
             'general' => [
                 'title' => $this->l('General Information'),
-                'content' => $this->l('This module allows you to automatically assign features to products based on their attributes. This is useful for filtering purposes and improving product search capabilities.'),
+                'content' => $this->l('This module allows you to automatically assign features to products based on their attributes or categories. This is useful for filtering purposes and improving product search capabilities.'),
                 'contact' => $this->l('If you need help please contact developer amurdato@gmail.com')
             ],
             'mappings' => [
-                'title' => $this->l('Creating Mappings'),
-                'content' => $this->l('A mapping connects a feature value with one or more attributes. When a product has any of these attributes, the feature value will be automatically assigned to the product.'),
+                'title' => $this->l('Attribute Mappings'),
+                'content' => $this->l('An attribute mapping connects a feature value with one or more product attributes. When a product has any of these attributes, the feature value will be automatically assigned to the product.'),
                 'steps' => [
                     $this->l('Select a feature value from the dropdown list'),
-                    $this->l('Select a category for better organization (optional)'),
+                    $this->l('Select an organization category (optional)'),
                     $this->l('Select one or more attributes that should trigger this feature value'),
+                    $this->l('Save the mapping'),
+                    $this->l('Use the "Generate Features" button to apply the mapping to existing products')
+                ]
+            ],
+            'categoryMapping' => [
+                'title' => $this->l('Category Mappings'),
+                'content' => $this->l('A category mapping connects a feature value with a product category. All products in that category will automatically receive the feature value.'),
+                'steps' => [
+                    $this->l('Go to the Category-Feature Mapping tab'),
+                    $this->l('Select a feature value from the dropdown list'),
+                    $this->l('Select a product category from the tree'),
                     $this->l('Save the mapping'),
                     $this->l('Use the "Generate Features" button to apply the mapping to existing products')
                 ]
@@ -882,8 +905,8 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
                 'content' => $this->l('For regular updates, set up a CRON job to automatically generate features for all products on a scheduled basis. This ensures new products get features assigned properly.'),
             ],
             'categories' => [
-                'title' => $this->l('Mapping Categories'),
-                'content' => $this->l('Organize your mappings into categories for better management. This is especially useful for shops with many different product types or large numbers of mappings.'),
+                'title' => $this->l('Mapping Organization Categories'),
+                'content' => $this->l('Organize your attribute mappings into categories for better management. This is especially useful for shops with many different product types or large numbers of mappings.'),
                 'tips' => [
                     $this->l('Create categories based on product types or departments'),
                     $this->l('Use the category filter to quickly find related mappings'),

@@ -59,6 +59,19 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'attribute_feature_sugge
     INDEX `idx_processed` (`processed`)
 ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4;';
 
+// Create category feature mapping table
+$sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'category_feature_mapping` (
+    `id_mapping` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `id_feature_value` int(10) unsigned NOT NULL,
+    `id_category` int(10) unsigned NOT NULL,
+    `date_add` datetime NOT NULL,
+    `date_upd` datetime NOT NULL,
+    PRIMARY KEY (`id_mapping`),
+    UNIQUE KEY `unique_mapping` (`id_feature_value`, `id_category`),
+    INDEX `idx_feature_value` (`id_feature_value`),
+    INDEX `idx_category` (`id_category`)
+) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4;';
+
 // Insert default category
 $sql[] = "INSERT INTO `" . _DB_PREFIX_ . "attribute_feature_mapping_category` 
     (`name`, `description`, `date_add`, `date_upd`) 

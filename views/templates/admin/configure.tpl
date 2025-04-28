@@ -3,6 +3,9 @@
         <div class="panel-heading">
             <i class="icon-cogs"></i> {l s='Attribute-Feature Connector' mod='attributefeatureconnector'}
             <span class="panel-heading-action">
+                <a href="{$category_mapping_url}" class="btn btn-default">
+                    <i class="icon-tags"></i> {l s='Category Mapping' mod='attributefeatureconnector'}
+                </a>
                 <a href="{$analytics_url}" class="btn btn-default">
                     <i class="icon-bar-chart"></i> {l s='Analytics Dashboard' mod='attributefeatureconnector'}
                 </a>
@@ -10,8 +13,11 @@
         </div>
         
         <div class="alert alert-info">
-            {l s='This module allows you to automatically assign features to products based on their attributes.' mod='attributefeatureconnector'}
-            <p class="help-block">{l s='If you need help please contact developer amurdato@gmail.com' mod='attributefeatureconnector'}</p>
+            {l s='This module allows you to automatically assign features to products based on their attributes or categories.' mod='attributefeatureconnector'}
+            <p class="help-block">
+                {l s='Use the Attribute Mapping tab (current) to assign features based on product attributes, or the Category Mapping tab to assign features based on product categories.' mod='attributefeatureconnector'}<br>
+                {l s='If you need help please contact developer amurdato@gmail.com' mod='attributefeatureconnector'}
+            </p>
             <button type="button" class="btn btn-info btn-xs pull-right" data-toggle="modal" data-target="#documentationModal">
                 <i class="icon-book"></i> {l s='Documentation' mod='attributefeatureconnector'}
             </button>
@@ -71,6 +77,7 @@
                                 <option value="{$feature.id}">{$feature.name}</option>
                             {/foreach}
                         </select>
+                        <p class="help-block">{l s='Only unmapped feature values are shown in this list.' mod='attributefeatureconnector'}</p>
                     </div>
                 </div>
                 
@@ -348,6 +355,9 @@
                             <a href="#doc-mappings" aria-controls="mappings" role="tab" data-toggle="tab">{$documentation.mappings.title}</a>
                         </li>
                         <li role="presentation">
+                            <a href="#doc-category-mapping" aria-controls="category-mapping" role="tab" data-toggle="tab">{$documentation.categoryMapping.title}</a>
+                        </li>
+                        <li role="presentation">
                             <a href="#doc-categories" aria-controls="categories" role="tab" data-toggle="tab">{$documentation.categories.title}</a>
                         </li>
                         <li role="presentation">
@@ -389,6 +399,20 @@
                                     <h4>{l s='Steps:' mod='attributefeatureconnector'}</h4>
                                     <ol>
                                         {foreach from=$documentation.mappings.steps item=step}
+                                            <li>{$step}</li>
+                                        {/foreach}
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div role="tabpanel" class="tab-pane" id="doc-category-mapping">
+                            <div class="panel">
+                                <div class="panel-body">
+                                    <p>{$documentation.categoryMapping.content}</p>
+                                    <h4>{l s='Steps:' mod='attributefeatureconnector'}</h4>
+                                    <ol>
+                                        {foreach from=$documentation.categoryMapping.steps item=step}
                                             <li>{$step}</li>
                                         {/foreach}
                                     </ol>
