@@ -41,8 +41,8 @@ $(document).ready(function() {
         $('#filter_form').submit();
     });
     
-    // Initialize tooltips for suggestion items
-    $('.suggestion-item [data-toggle="tooltip"]').tooltip();
+    // Removed: Initialize tooltips for suggestion items
+    // $('.suggestion-item [data-toggle="tooltip"]').tooltip();
     
     // Run CRON job animation
     $('.run-cron-now').hover(
@@ -55,19 +55,11 @@ $(document).ready(function() {
         // Handled by Chart.js in the template
     }
     
-    // Process suggestion confirmation
-    $('.process-suggestion').on('click', function(e) {
-        if (!confirm('Do you want to process this suggestion? This will add it to your attributes.')) {
-            e.preventDefault();
-        }
-    });
+    // Removed: Process suggestion confirmation
+    // $('.process-suggestion').on('click', function(e) { ... });
     
-    // Ignore suggestion confirmation
-    $('.ignore-suggestion').on('click', function(e) {
-        if (!confirm('Are you sure you want to ignore this suggestion?')) {
-            e.preventDefault();
-        }
-    });
+    // Removed: Ignore suggestion confirmation
+    // $('.ignore-suggestion').on('click', function(e) { ... });
     
     // Conflict resolution confirmation
     $('.resolve-conflict').on('click', function(e) {

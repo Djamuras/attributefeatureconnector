@@ -46,19 +46,6 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'attribute_feature_perfo
     INDEX `idx_date` (`date_add`)
 ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4;';
 
-// Create attribute suggestions table
-$sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'attribute_feature_suggestion` (
-    `id_suggestion` int(10) unsigned NOT NULL AUTO_INCREMENT,
-    `id_product` int(10) unsigned NOT NULL,
-    `text` varchar(255) NOT NULL,
-    `confidence` float NOT NULL,
-    `processed` tinyint(1) NOT NULL DEFAULT 0,
-    `date_add` datetime NOT NULL,
-    PRIMARY KEY (`id_suggestion`),
-    INDEX `idx_product` (`id_product`),
-    INDEX `idx_processed` (`processed`)
-) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4;';
-
 // Create category feature mapping table
 $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'category_feature_mapping` (
     `id_mapping` int(10) unsigned NOT NULL AUTO_INCREMENT,

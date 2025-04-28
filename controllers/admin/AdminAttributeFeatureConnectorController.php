@@ -927,7 +927,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
                 'features' => [
                     $this->l('Performance metrics track execution time and memory usage'),
                     $this->l('Conflict detection finds and helps resolve conflicting attribute mappings'),
-                    $this->l('Auto-attribute suggestions can identify potential attributes from product descriptions'),
+                    // Removed auto-attribute suggestions feature reference
                     $this->l('Batch size optimization based on your server performance')
                 ]
             ],

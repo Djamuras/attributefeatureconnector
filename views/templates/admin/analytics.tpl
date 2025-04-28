@@ -158,68 +158,6 @@
             </div>
         </div>
         
-        <div class="panel">
-            <div class="panel-heading">
-                <i class="icon-lightbulb"></i> {l s='Auto-Attribute Suggestions' mod='attributefeatureconnector'}
-                <span class="panel-heading-action">
-                    <a href="{$analyze_product_url}" class="btn btn-default">
-                        <i class="icon-refresh"></i> {l s='Analyze Products' mod='attributefeatureconnector'}
-                    </a>
-                </span>
-            </div>
-            <div class="panel-body">
-                {if !empty($suggestions)}
-                    <div class="alert alert-info">
-                        <p>{l s='The following potential attributes were detected in your product descriptions:' mod='attributefeatureconnector'}</p>
-                    </div>
-                    
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>{l s='Product' mod='attributefeatureconnector'}</th>
-                                    <th>{l s='Suggested Attribute' mod='attributefeatureconnector'}</th>
-                                    <th>{l s='Confidence' mod='attributefeatureconnector'}</th>
-                                    <th>{l s='Actions' mod='attributefeatureconnector'}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {foreach from=$suggestions item=suggestion}
-                                    <tr>
-                                        <td>{$suggestion.product_name}</td>
-                                        <td><strong>{$suggestion.text}</strong></td>
-                                        <td>
-                                            <div class="progress">
-                                                <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="{$suggestion.confidence*100}" aria-valuemin="0" aria-valuemax="100" style="width: {$suggestion.confidence*100}%;">
-                                                    {math equation="x*100" x=$suggestion.confidence format="%.0f"}%
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <a href="{$process_suggestion_url}&id_suggestion={$suggestion.id_suggestion}" class="btn btn-xs btn-success">
-                                                    <i class="icon-check"></i> {l s='Process' mod='attributefeatureconnector'}
-                                                </a>
-                                                <a href="{$ignore_suggestion_url}&id_suggestion={$suggestion.id_suggestion}" class="btn btn-xs btn-default">
-                                                    <i class="icon-ban"></i> {l s='Ignore' mod='attributefeatureconnector'}
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {/foreach}
-                            </tbody>
-                        </table>
-                    </div>
-                {else}
-                    <div class="alert alert-info">
-                        <p>{l s='No attribute suggestions available. Run product analysis to generate suggestions.' mod='attributefeatureconnector'}</p>
-                        <a href="{$analyze_product_url}" class="btn btn-primary">
-                            <i class="icon-search"></i> {l s='Analyze Product Descriptions' mod='attributefeatureconnector'}
-                        </a>
-                    </div>
-                {/if}
-            </div>
-        </div>
         
         <div class="panel">
             <div class="panel-heading">
