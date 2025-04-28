@@ -28,15 +28,12 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
     
     public function renderConfigForm()
     {
-        // Get all features, excluding already mapped ones
+        // Get all features
         $features = Feature::getFeatures($this->context->language->id);
         $feature_options = [];
         
-        // Get both attribute-mapped and category-mapped feature values
-        $mappedFeatureValues = array_merge(
-            AttributeFeatureConnector::getMappedFeatureValues(),
-            AttributeFeatureConnector::getCategoryMappedFeatureValues()
-        );
+        // Get only attribute-mapped feature values (not category-mapped ones)
+        $mappedFeatureValues = AttributeFeatureConnector::getMappedFeatureValues();
         
         foreach ($features as $feature) {
             $feature_values = FeatureValue::getFeatureValuesWithLang(

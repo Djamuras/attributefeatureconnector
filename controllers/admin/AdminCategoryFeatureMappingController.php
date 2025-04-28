@@ -28,15 +28,9 @@ class AdminCategoryFeatureMappingController extends ModuleAdminController
     
     public function renderConfigForm()
     {
-        // Get all features, excluding already mapped ones
+        // Get all features - do not exclude already mapped ones
         $features = Feature::getFeatures($this->context->language->id);
         $feature_options = [];
-        
-        // Get both attribute-mapped and category-mapped feature values
-        $mappedFeatureValues = array_merge(
-            AttributeFeatureConnector::getMappedFeatureValues(),
-            AttributeFeatureConnector::getCategoryMappedFeatureValues()
-        );
         
         foreach ($features as $feature) {
             $feature_values = FeatureValue::getFeatureValuesWithLang(
@@ -45,11 +39,7 @@ class AdminCategoryFeatureMappingController extends ModuleAdminController
             );
             
             foreach ($feature_values as $value) {
-                // Skip already mapped feature values
-                if (in_array($value['id_feature_value'], $mappedFeatureValues)) {
-                    continue;
-                }
-                
+                // Don't skip mapped values - we want to show all feature values
                 $feature_options[] = [
                     'id' => $value['id_feature_value'],
                     'name' => $feature['name'] . ' - ' . $value['value'],

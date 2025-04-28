@@ -67,7 +67,6 @@
                                 <option value="{$feature.id}">{$feature.name}</option>
                             {/foreach}
                         </select>
-                        <p class="help-block">{l s='Only unmapped feature values are shown in this list.' mod='attributefeatureconnector'}</p>
                     </div>
                 </div>
                 

@@ -35,17 +35,6 @@
                 <input type="hidden" name="id_mapping" value="{$mapping_to_edit.id_mapping}" />
                 
                 <div class="form-group">
-                    <label class="control-label col-lg-3">{l s='Category' mod='attributefeatureconnector'}</label>
-                    <div class="col-lg-9">
-                        <select name="id_category" class="form-control">
-                            {foreach $categories as $category}
-                                <option value="{$category.id_category}" {if isset($mapping_to_edit.id_category) && $mapping_to_edit.id_category == $category.id_category}selected="selected"{/if}>{$category.name}</option>
-                            {/foreach}
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="form-group">
                     <label class="control-label col-lg-3">{l s='Select Attributes' mod='attributefeatureconnector'}</label>
                     <div class="col-lg-9">
                         <select name="selected_attributes[]" id="edit_attributes_select" class="form-control" multiple="multiple" style="height: 250px;">
@@ -54,6 +43,17 @@
                             {/foreach}
                         </select>
                         <p class="help-block">{l s='Hold Ctrl/Cmd to select multiple attributes' mod='attributefeatureconnector'}</p>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="control-label col-lg-3">{l s='Category' mod='attributefeatureconnector'}</label>
+                    <div class="col-lg-9">
+                        <select name="id_category" class="form-control">
+                            {foreach $categories as $category}
+                                <option value="{$category.id_category}" {if isset($mapping_to_edit.id_category) && $mapping_to_edit.id_category == $category.id_category}selected="selected"{/if}>{$category.name}</option>
+                            {/foreach}
+                        </select>
                     </div>
                 </div>
                 
@@ -82,17 +82,6 @@
                 </div>
                 
                 <div class="form-group">
-                    <label class="control-label col-lg-3">{l s='Category' mod='attributefeatureconnector'}</label>
-                    <div class="col-lg-9">
-                        <select name="id_category" class="form-control">
-                            {foreach $categories as $category}
-                                <option value="{$category.id_category}">{$category.name}</option>
-                            {/foreach}
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="form-group">
                     <label class="control-label col-lg-3">{l s='Select Attributes' mod='attributefeatureconnector'}</label>
                     <div class="col-lg-9">
                         <select name="selected_attributes[]" id="attributes_select" class="form-control" multiple="multiple" style="height: 250px;">
@@ -101,6 +90,17 @@
                             {/foreach}
                         </select>
                         <p class="help-block">{l s='Hold Ctrl/Cmd to select multiple attributes' mod='attributefeatureconnector'}</p>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="control-label col-lg-3">{l s='Category' mod='attributefeatureconnector'}</label>
+                    <div class="col-lg-9">
+                        <select name="id_category" class="form-control">
+                            {foreach $categories as $category}
+                                <option value="{$category.id_category}">{$category.name}</option>
+                            {/foreach}
+                        </select>
                     </div>
                 </div>
                 
