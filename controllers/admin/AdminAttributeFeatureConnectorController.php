@@ -910,11 +910,11 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
                     $this->l('Auto-attribute suggestions can identify potential attributes from product descriptions'),
                     $this->l('Batch size optimization based on your server performance')
                 ]
-            },
+            ],
             'support' => [
                 'title' => $this->l('Support'),
                 'content' => $this->l('If you need help please contact developer amurdato@gmail.com')
-            ],
+            ]
         ];
     }
     

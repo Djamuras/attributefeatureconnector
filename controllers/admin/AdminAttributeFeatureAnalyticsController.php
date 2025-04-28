@@ -225,12 +225,13 @@ class AdminAttributeFeatureAnalyticsController extends ModuleAdminController
         
         // Get all mappings
         $query = new DbQuery();
-        $query->select('m.id_mapping, m.id_feature_value, fv.id_feature, f.name as feature_name, 
+        $query->select('m.id_mapping, m.id_feature_value, fv.id_feature, fl.name as feature_name, 
                       fvl.value as feature_value, ma.id_attribute')
             ->from('attribute_feature_mapping', 'm')
             ->leftJoin('attribute_feature_mapping_attributes', 'ma', 'm.id_mapping = ma.id_mapping')
             ->leftJoin('feature_value', 'fv', 'm.id_feature_value = fv.id_feature_value')
             ->leftJoin('feature', 'f', 'fv.id_feature = f.id_feature')
+            ->leftJoin('feature_lang', 'fl', 'f.id_feature = fl.id_feature AND fl.id_lang = ' . (int)$this->context->language->id)
             ->leftJoin('feature_value_lang', 'fvl', 'fv.id_feature_value = fvl.id_feature_value AND fvl.id_lang = ' . (int)$this->context->language->id);
             
         $mappings = Db::getInstance()->executeS($query);
