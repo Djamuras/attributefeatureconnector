@@ -6,6 +6,10 @@
         
         <div class="alert alert-info">
             {l s='This module allows you to automatically assign features to products based on their attributes.' mod='attributefeatureconnector'}
+            <p class="help-block">{l s='If you need help please contact developer amurdato@gmail.com' mod='attributefeatureconnector'}</p>
+            <button type="button" class="btn btn-info btn-xs pull-right" data-toggle="modal" data-target="#documentationModal">
+                <i class="icon-book"></i> {l s='Documentation' mod='attributefeatureconnector'}
+            </button>
         </div>
         
         {if isset($confirmation)}
@@ -22,7 +26,7 @@
                 <div class="form-group">
                     <label class="control-label col-lg-3">{l s='Select Attributes' mod='attributefeatureconnector'}</label>
                     <div class="col-lg-9">
-                        <select name="selected_attributes[]" class="form-control" multiple="multiple" style="height: 250px;">
+                        <select name="selected_attributes[]" id="edit_attributes_select" class="form-control" multiple="multiple" style="height: 250px;">
                             {foreach $attribute_options as $attribute}
                                 <option value="{$attribute.id}" {if in_array($attribute.id, $selected_attributes)}selected="selected"{/if}>{$attribute.name}</option>
                             {/foreach}
@@ -45,7 +49,7 @@
                 <div class="form-group">
                     <label class="control-label col-lg-3">{l s='Select Feature Value' mod='attributefeatureconnector'}</label>
                     <div class="col-lg-9">
-                        <select name="id_feature_value" class="form-control">
+                        <select name="id_feature_value" id="feature_value_select" class="form-control">
                             <option value="">{l s='-- Select Feature Value --' mod='attributefeatureconnector'}</option>
                             {foreach $feature_options as $feature}
                                 <option value="{$feature.id}">{$feature.name}</option>
@@ -57,7 +61,7 @@
                 <div class="form-group">
                     <label class="control-label col-lg-3">{l s='Select Attributes' mod='attributefeatureconnector'}</label>
                     <div class="col-lg-9">
-                        <select name="selected_attributes[]" class="form-control" multiple="multiple" style="height: 250px;">
+                        <select name="selected_attributes[]" id="attributes_select" class="form-control" multiple="multiple" style="height: 250px;">
                             {foreach $attribute_options as $attribute}
                                 <option value="{$attribute.id}">{$attribute.name}</option>
                             {/foreach}
@@ -73,6 +77,35 @@
                 </div>
             </form>
         {/if}
+    </div>
+    
+    <!-- Batch Processing Panel -->
+    <div class="panel">
+        <div class="panel-heading">
+            <i class="icon-cog"></i> {l s='Batch Processing Settings' mod='attributefeatureconnector'}
+        </div>
+        
+        <div class="alert alert-info">
+            {l s='Adjust batch size for large catalogs to prevent timeout issues during processing.' mod='attributefeatureconnector'}
+            <span class="help-block">{l s='Smaller values are safer but slower, larger values are faster but may cause timeouts.' mod='attributefeatureconnector'}</span>
+        </div>
+        
+        <form id="batch_form" class="form-horizontal" action="{$smarty.server.REQUEST_URI}" method="post">
+            <div class="form-group">
+                <label class="control-label col-lg-3">{l s='Batch Size' mod='attributefeatureconnector'}</label>
+                <div class="col-lg-9">
+                    <div class="input-group">
+                        <input type="number" name="batch_size" class="form-control" value="{$batch_size}" min="10" step="10">
+                        <span class="input-group-btn">
+                            <button type="submit" name="update_batch_size" class="btn btn-default">
+                                <i class="icon-refresh"></i> {l s='Update' mod='attributefeatureconnector'}
+                            </button>
+                        </span>
+                    </div>
+                    <p class="help-block">{l s='Recommended: 50 for shared hosting, 100-200 for dedicated servers' mod='attributefeatureconnector'}</p>
+                </div>
+            </div>
+        </form>
     </div>
     
     <!-- CRON Job Panel -->
@@ -168,17 +201,20 @@
                             <td>{$mapping.attributes}</td>
                             <td>
                                 <div class="btn-group">
-                                    <a href="{$edit_url}&edit_mapping={$mapping.id_mapping}" class="btn btn-default btn-action">
-                                        <i class="icon-pencil"></i> {l s='Edit' mod='attributefeatureconnector'}
+                                    <a href="{$edit_url}&edit_mapping={$mapping.id_mapping}" class="btn btn-default btn-action" title="{l s='Edit' mod='attributefeatureconnector'}">
+                                        <i class="icon-pencil"></i>
                                     </a>
-                                    <a href="{$delete_url}&id_mapping={$mapping.id_mapping}" class="btn btn-default btn-action" onclick="return confirm('{l s='Are you sure?' mod='attributefeatureconnector'}');">
-                                        <i class="icon-trash"></i> {l s='Delete' mod='attributefeatureconnector'}
+                                    <a href="{$delete_url}&id_mapping={$mapping.id_mapping}" class="btn btn-default btn-action" onclick="return confirm('{l s='Are you sure?' mod='attributefeatureconnector'}');" title="{l s='Delete' mod='attributefeatureconnector'}">
+                                        <i class="icon-trash"></i>
                                     </a>
-                                    <a href="{$generate_mapping_url}{$mapping.id_mapping}" class="btn btn-success btn-action">
-                                        <i class="icon-refresh"></i> {l s='Generate Features' mod='attributefeatureconnector'}
+                                    <a href="{$preview_url}{$mapping.id_mapping}" class="btn btn-info btn-action" title="{l s='Preview Affected Products' mod='attributefeatureconnector'}">
+                                        <i class="icon-eye"></i>
                                     </a>
-                                    <a href="{$undo_mapping_url}{$mapping.id_mapping}" class="btn btn-warning btn-action" onclick="return confirm('{l s='Are you sure you want to remove these features from products?' mod='attributefeatureconnector'}');">
-                                        <i class="icon-undo"></i> {l s='Undo Mapping' mod='attributefeatureconnector'}
+                                    <a href="{$generate_mapping_url}{$mapping.id_mapping}" class="btn btn-success btn-action" title="{l s='Generate Features' mod='attributefeatureconnector'}">
+                                        <i class="icon-refresh"></i>
+                                    </a>
+                                    <a href="{$undo_mapping_url}{$mapping.id_mapping}" class="btn btn-warning btn-action" onclick="return confirm('{l s='Are you sure you want to remove these features from products?' mod='attributefeatureconnector'}');" title="{l s='Undo Mapping' mod='attributefeatureconnector'}">
+                                        <i class="icon-undo"></i>
                                     </a>
                                 </div>
                             </td>
@@ -228,10 +264,130 @@
             {/if}
             
             <div class="panel-footer">
-                <a href="{$generate_url}" class="btn btn-primary">
+                <a href="{$generate_url}" class="btn btn-primary" onclick="return confirm('{l s='This will apply all mappings to your products. Continue?' mod='attributefeatureconnector'}');">
                     <i class="icon-refresh"></i> {l s='Generate ALL Features' mod='attributefeatureconnector'}
                 </a>
             </div>
         </div>
     {/if}
+    
+    <!-- Documentation Modal -->
+    <div class="modal fade" id="documentationModal" tabindex="-1" role="dialog" aria-labelledby="documentationModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="documentationModalLabel"><i class="icon-book"></i> {l s='Documentation' mod='attributefeatureconnector'}</h4>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li role="presentation" class="active">
+                            <a href="#doc-general" aria-controls="general" role="tab" data-toggle="tab">{$documentation.general.title}</a>
+                        </li>
+                        <li role="presentation">
+                            <a href="#doc-mappings" aria-controls="mappings" role="tab" data-toggle="tab">{$documentation.mappings.title}</a>
+                        </li>
+                        <li role="presentation">
+                            <a href="#doc-preview" aria-controls="preview" role="tab" data-toggle="tab">{$documentation.preview.title}</a>
+                        </li>
+                        <li role="presentation">
+                            <a href="#doc-batch" aria-controls="batch" role="tab" data-toggle="tab">{$documentation.batch.title}</a>
+                        </li>
+                        <li role="presentation">
+                            <a href="#doc-cron" aria-controls="cron" role="tab" data-toggle="tab">{$documentation.cron.title}</a>
+                        </li>
+                        <li role="presentation">
+                            <a href="#doc-best-practices" aria-controls="best-practices" role="tab" data-toggle="tab">{$documentation.bestPractices.title}</a>
+                        </li>
+                        <li role="presentation">
+                            <a href="#doc-support" aria-controls="support" role="tab" data-toggle="tab">{$documentation.support.title}</a>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content">
+                        <div role="tabpanel" class="tab-pane active" id="doc-general">
+                            <div class="panel">
+                                <div class="panel-body">
+                                    <p>{$documentation.general.content}</p>
+                                    <div class="alert alert-info">
+                                        <p>{$documentation.general.contact}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div role="tabpanel" class="tab-pane" id="doc-mappings">
+                            <div class="panel">
+                                <div class="panel-body">
+                                    <p>{$documentation.mappings.content}</p>
+                                    <h4>{l s='Steps:' mod='attributefeatureconnector'}</h4>
+                                    <ol>
+                                        {foreach from=$documentation.mappings.steps item=step}
+                                            <li>{$step}</li>
+                                        {/foreach}
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div role="tabpanel" class="tab-pane" id="doc-preview">
+                            <div class="panel">
+                                <div class="panel-body">
+                                    <p>{$documentation.preview.content}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div role="tabpanel" class="tab-pane" id="doc-batch">
+                            <div class="panel">
+                                <div class="panel-body">
+                                    <p>{$documentation.batch.content}</p>
+                                    <h4>{l s='Tips:' mod='attributefeatureconnector'}</h4>
+                                    <ul>
+                                        {foreach from=$documentation.batch.tips item=tip}
+                                            <li>{$tip}</li>
+                                        {/foreach}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div role="tabpanel" class="tab-pane" id="doc-cron">
+                            <div class="panel">
+                                <div class="panel-body">
+                                    <p>{$documentation.cron.content}</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div role="tabpanel" class="tab-pane" id="doc-best-practices">
+                            <div class="panel">
+                                <div class="panel-body">
+                                    <h4>{l s='Tips:' mod='attributefeatureconnector'}</h4>
+                                    <ul>
+                                        {foreach from=$documentation.bestPractices.tips item=tip}
+                                            <li>{$tip}</li>
+                                        {/foreach}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div role="tabpanel" class="tab-pane" id="doc-support">
+                            <div class="panel">
+                                <div class="panel-body">
+                                    <div class="alert alert-info">
+                                        <p>{$documentation.support.content}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">{l s='Close' mod='attributefeatureconnector'}</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

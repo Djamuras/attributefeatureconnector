@@ -11,6 +11,29 @@ $(document).ready(function() {
             $(this).val(selected.split(','));
         }
     });
+    
+    // Add tooltips to action buttons
+    $('.btn-action').tooltip({
+        placement: 'top',
+        container: 'body'
+    });
+    
+    // Handle batch size changes validation
+    $('#batch_form').on('submit', function(e) {
+        const batchSize = parseInt($('input[name="batch_size"]').val());
+        if (isNaN(batchSize) || batchSize < 10) {
+            e.preventDefault();
+            alert('Batch size must be at least 10');
+            return false;
+        }
+        return true;
+    });
+    
+    // Documentation tabs
+    $('#documentationModal').on('shown.bs.modal', function() {
+        // Ensure first tab is active when modal opens
+        $('#documentationModal .nav-tabs a:first').tab('show');
+    });
 });
 
 // Function to copy text to clipboard

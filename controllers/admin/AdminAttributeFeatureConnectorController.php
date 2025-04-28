@@ -41,7 +41,10 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             foreach ($feature_values as $value) {
                 $feature_options[] = [
                     'id' => $value['id_feature_value'],
-                    'name' => $feature['name'] . ' - ' . $value['value']
+                    'name' => $feature['name'] . ' - ' . $value['value'],
+                    'feature_id' => $feature['id_feature'],
+                    'feature_name' => $feature['name'],
+                    'value' => $value['value']
                 ];
             }
         }
@@ -64,7 +67,9 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             foreach ($attributes as $attribute) {
                 $attribute_options[] = [
                     'id' => $attribute['id_attribute'],
-                    'name' => $group['name'] . ' - ' . $attribute['name']
+                    'name' => $group['name'] . ' - ' . $attribute['name'],
+                    'group_name' => $group['name'],
+                    'attribute_name' => $attribute['name']
                 ];
             }
         }
@@ -133,6 +138,12 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         $shop_domain = Context::getContext()->shop->getBaseURL(true);
         $cron_url = $shop_domain . 'index.php?fc=module&module=attributefeatureconnector&controller=cron&token=' . $cron_token;
         
+        // Get batch processing configuration
+        $batch_size = Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_BATCH_SIZE', 50);
+        
+        // Documentation content
+        $documentation = $this->getDocumentationContent();
+        
         $this->context->smarty->assign([
             'feature_options' => $feature_options,
             'attribute_options' => $attribute_options,
@@ -142,6 +153,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             'generate_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=generateAllFeatures',
             'generate_mapping_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=generateFeatures&id_mapping=',
             'undo_mapping_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=undoMapping&id_mapping=',
+            'preview_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=previewMapping&id_mapping=',
             'delete_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=deleteMapping',
             'edit_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=editMapping',
             'cancel_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector'),
@@ -151,7 +163,9 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             'items_per_page' => $items_per_page,
             'total_mappings' => $total_mappings,
             'cron_token' => $cron_token,
-            'cron_url' => $cron_url
+            'cron_url' => $cron_url,
+            'batch_size' => $batch_size,
+            'documentation' => $documentation
         ]);
         
         return $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'attributefeatureconnector/views/templates/admin/configure.tpl');
@@ -212,6 +226,14 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             $new_token = bin2hex(random_bytes(16)); // 32 characters long
             Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_CRON_TOKEN', $new_token);
             $this->confirmations[] = $this->l('CRON token regenerated successfully');
+        } elseif (Tools::isSubmit('update_batch_size')) {
+            $batch_size = (int)Tools::getValue('batch_size');
+            if ($batch_size > 0) {
+                Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_BATCH_SIZE', $batch_size);
+                $this->confirmations[] = $this->l('Batch size updated successfully');
+            } else {
+                $this->errors[] = $this->l('Batch size must be greater than 0');
+            }
         } elseif (Tools::getValue('action') === 'generateAllFeatures') {
             $result = $this->generateAllFeatures();
             if ($result['success']) {
@@ -245,6 +267,23 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
                 $this->deleteMapping($id_mapping);
                 $this->confirmations[] = $this->l('Mapping deleted successfully');
             }
+        } elseif (Tools::getValue('action') === 'previewMapping') {
+            $id_mapping = (int)Tools::getValue('id_mapping');
+            if ($id_mapping) {
+                $preview_results = $this->previewMapping($id_mapping);
+                if ($preview_results) {
+                    $this->context->smarty->assign([
+                        'preview_results' => $preview_results,
+                        'mapping_id' => $id_mapping,
+                        'back_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector')
+                    ]);
+                    
+                    $this->content = $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'attributefeatureconnector/views/templates/admin/preview.tpl');
+                    return;
+                } else {
+                    $this->errors[] = $this->l('No products found for this mapping preview');
+                }
+            }
         }
         
         parent::postProcess();
@@ -256,7 +295,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         $offset = ($page - 1) * $items_per_page;
         
         $query = new DbQuery();
-        $query->select('afm.*, fvl.value, f.name as feature_name, GROUP_CONCAT(al.name SEPARATOR ", ") as attributes')
+        $query->select('afm.*, fvl.value, f.name as feature_name, f.id_feature, GROUP_CONCAT(al.name SEPARATOR ", ") as attributes')
             ->from('attribute_feature_mapping', 'afm')
             ->leftJoin('attribute_feature_mapping_attributes', 'afma', 'afm.id_mapping = afma.id_mapping')
             ->leftJoin('feature_value_lang', 'fvl', 'afm.id_feature_value = fvl.id_feature_value AND fvl.id_lang = ' . (int)$this->context->language->id)
@@ -352,9 +391,8 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         // Get all mappings
         $mappings = [];
         $query = new DbQuery();
-        $query->select('afm.id_feature_value, afma.id_attribute')
-            ->from('attribute_feature_mapping', 'afm')
-            ->leftJoin('attribute_feature_mapping_attributes', 'afma', 'afm.id_mapping = afma.id_mapping');
+        $query->select('afm.id_mapping, afm.id_feature_value')
+            ->from('attribute_feature_mapping', 'afm');
         
         $result = Db::getInstance()->executeS($query);
         
@@ -362,23 +400,22 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             return ['success' => false, 'updated' => 0];
         }
         
-        // Reorganize data for easier processing
-        foreach ($result as $row) {
-            if (!isset($mappings[$row['id_feature_value']])) {
-                $mappings[$row['id_feature_value']] = [];
-            }
-            $mappings[$row['id_feature_value']][] = $row['id_attribute'];
-        }
+        // Get batch size from configuration
+        $batch_size = (int)Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_BATCH_SIZE', 50);
         
-        // Process each mapping
-        foreach ($mappings as $id_feature_value => $attributes) {
-            $updated += $this->processFeatureMapping($id_feature_value, $attributes);
+        // Process each mapping in batches
+        foreach ($result as $mapping) {
+            $id_mapping = $mapping['id_mapping'];
+            $mapping_result = $this->generateFeaturesForMapping($id_mapping, $batch_size);
+            if ($mapping_result['success']) {
+                $updated += $mapping_result['updated'];
+            }
         }
         
         return ['success' => true, 'updated' => $updated];
     }
     
-    protected function generateFeaturesForMapping($id_mapping)
+    protected function generateFeaturesForMapping($id_mapping, $batch_size = null)
     {
         $updated = 0;
         
@@ -403,10 +440,74 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             $attributes[] = $row['id_attribute'];
         }
         
-        // Process the mapping
-        $updated = $this->processFeatureMapping($id_feature_value, $attributes);
+        // If batch_size is not provided, get it from configuration
+        if ($batch_size === null) {
+            $batch_size = (int)Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_BATCH_SIZE', 50);
+        }
+        
+        // Process the mapping with batch processing
+        $updated = $this->processMappingInBatches($id_feature_value, $attributes, $batch_size);
         
         return ['success' => true, 'updated' => $updated];
+    }
+    
+    protected function processMappingInBatches($id_feature_value, $attributes, $batch_size)
+    {
+        $updated = 0;
+        $offset = 0;
+        
+        // Get feature information
+        $feature_value = new FeatureValue($id_feature_value);
+        $id_feature = $feature_value->id_feature;
+        
+        while (true) {
+            // Get a batch of products with these attributes
+            $sql = 'SELECT DISTINCT pa.id_product 
+                    FROM ' . _DB_PREFIX_ . 'product_attribute_combination pac
+                    JOIN ' . _DB_PREFIX_ . 'product_attribute pa ON pa.id_product_attribute = pac.id_product_attribute
+                    WHERE pac.id_attribute IN (' . implode(',', array_map('intval', $attributes)) . ')
+                    LIMIT ' . (int)$offset . ', ' . (int)$batch_size;
+            
+            $products = Db::getInstance()->executeS($sql);
+            
+            if (!$products || empty($products)) {
+                break; // No more products to process
+            }
+            
+            // Process this batch
+            foreach ($products as $product) {
+                $id_product = (int)$product['id_product'];
+                
+                // Check if the product already has this feature value
+                $exists = Db::getInstance()->getValue('
+                    SELECT COUNT(*)
+                    FROM ' . _DB_PREFIX_ . 'feature_product
+                    WHERE id_product = ' . $id_product . '
+                    AND id_feature = ' . $id_feature . '
+                    AND id_feature_value = ' . $id_feature_value
+                );
+                
+                if (!$exists) {
+                    // Add feature to product
+                    Db::getInstance()->insert('feature_product', [
+                        'id_feature' => $id_feature,
+                        'id_product' => $id_product,
+                        'id_feature_value' => $id_feature_value,
+                    ]);
+                    $updated++;
+                }
+            }
+            
+            // Move to the next batch
+            $offset += $batch_size;
+            
+            // Security: avoid infinite loops
+            if (count($products) < $batch_size) {
+                break;
+            }
+        }
+        
+        return $updated;
     }
     
     protected function undoMapping($id_mapping)
@@ -431,79 +532,178 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         $feature_value = new FeatureValue($id_feature_value);
         $id_feature = $feature_value->id_feature;
         
-        // Get products with this mapping
-        $products_with_feature = Db::getInstance()->executeS('
-            SELECT id_product
-            FROM ' . _DB_PREFIX_ . 'feature_product
-            WHERE id_feature = ' . (int)$id_feature . '
-            AND id_feature_value = ' . (int)$id_feature_value
-        );
+        // Get batch size from configuration
+        $batch_size = (int)Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_BATCH_SIZE', 50);
+        $offset = 0;
         
-        if (!$products_with_feature) {
-            return ['success' => true, 'updated' => 0];
-        }
-        
-        // Remove features from products
-        foreach ($products_with_feature as $product) {
-            $id_product = (int)$product['id_product'];
-            
-            Db::getInstance()->delete(
-                'feature_product',
-                'id_feature = ' . (int)$id_feature . ' 
-                AND id_product = ' . (int)$id_product . ' 
-                AND id_feature_value = ' . (int)$id_feature_value
+        // Process in batches
+        while (true) {
+            // Get a batch of products with this feature
+            $products_with_feature = Db::getInstance()->executeS('
+                SELECT id_product
+                FROM ' . _DB_PREFIX_ . 'feature_product
+                WHERE id_feature = ' . (int)$id_feature . '
+                AND id_feature_value = ' . (int)$id_feature_value . '
+                LIMIT ' . (int)$offset . ', ' . (int)$batch_size
             );
             
-            $updated++;
+            if (!$products_with_feature || empty($products_with_feature)) {
+                break; // No more products to process
+            }
+            
+            // Remove features from products in this batch
+            foreach ($products_with_feature as $product) {
+                $id_product = (int)$product['id_product'];
+                
+                Db::getInstance()->delete(
+                    'feature_product',
+                    'id_feature = ' . (int)$id_feature . ' 
+                    AND id_product = ' . (int)$id_product . ' 
+                    AND id_feature_value = ' . (int)$id_feature_value
+                );
+                
+                $updated++;
+            }
+            
+            // Move to the next batch
+            $offset += $batch_size;
+            
+            // Security: avoid infinite loops
+            if (count($products_with_feature) < $batch_size) {
+                break;
+            }
         }
         
         return ['success' => true, 'updated' => $updated];
     }
     
-    protected function processFeatureMapping($id_feature_value, $attributes)
+    protected function previewMapping($id_mapping, $limit = 10)
     {
-        $updated = 0;
+        // Get mapping details
+        $query = new DbQuery();
+        $query->select('afm.id_feature_value, fvl.value, f.name as feature_name, f.id_feature')
+            ->from('attribute_feature_mapping', 'afm')
+            ->leftJoin('feature_value_lang', 'fvl', 'afm.id_feature_value = fvl.id_feature_value AND fvl.id_lang = ' . (int)$this->context->language->id)
+            ->leftJoin('feature_value', 'fv', 'fvl.id_feature_value = fv.id_feature_value')
+            ->leftJoin('feature_lang', 'f', 'fv.id_feature = f.id_feature AND f.id_lang = ' . (int)$this->context->language->id)
+            ->where('afm.id_mapping = ' . (int)$id_mapping);
         
-        // Get products with these attributes
-        $sql = 'SELECT DISTINCT pa.id_product 
+        $mapping_info = Db::getInstance()->getRow($query);
+        
+        if (!$mapping_info) {
+            return false;
+        }
+        
+        // Get attributes for this mapping
+        $attributes = $this->getAttributesForMapping($id_mapping);
+        
+        if (empty($attributes)) {
+            return false;
+        }
+        
+        // Get products that would be affected
+        $sql = 'SELECT DISTINCT p.id_product, pl.name as product_name, GROUP_CONCAT(DISTINCT al.name SEPARATOR ", ") as matching_attributes 
+                FROM ' . _DB_PREFIX_ . 'product_attribute_combination pac
+                JOIN ' . _DB_PREFIX_ . 'product_attribute pa ON pa.id_product_attribute = pac.id_product_attribute
+                JOIN ' . _DB_PREFIX_ . 'product p ON p.id_product = pa.id_product
+                JOIN ' . _DB_PREFIX_ . 'product_lang pl ON p.id_product = pl.id_product AND pl.id_lang = ' . (int)$this->context->language->id . '
+                LEFT JOIN ' . _DB_PREFIX_ . 'attribute_lang al ON pac.id_attribute = al.id_attribute AND al.id_lang = ' . (int)$this->context->language->id . '
+                WHERE pac.id_attribute IN (' . implode(',', array_map('intval', $attributes)) . ')
+                GROUP BY p.id_product
+                ORDER BY pl.name ASC
+                LIMIT ' . (int)$limit;
+        
+        $affected_products = Db::getInstance()->executeS($sql);
+        
+        if (!$affected_products) {
+            return false;
+        }
+        
+        // Get total count of affected products
+        $total_sql = 'SELECT COUNT(DISTINCT pa.id_product) 
                 FROM ' . _DB_PREFIX_ . 'product_attribute_combination pac
                 JOIN ' . _DB_PREFIX_ . 'product_attribute pa ON pa.id_product_attribute = pac.id_product_attribute
                 WHERE pac.id_attribute IN (' . implode(',', array_map('intval', $attributes)) . ')';
         
-        $products = Db::getInstance()->executeS($sql);
+        $total_affected = Db::getInstance()->getValue($total_sql);
         
-        if (!$products) {
-            return $updated;
-        }
-        
-        // Get feature information
-        $feature_value = new FeatureValue($id_feature_value);
-        $id_feature = $feature_value->id_feature;
-        
-        // Associate feature to products
-        foreach ($products as $product) {
-            $id_product = (int)$product['id_product'];
-            
-            // Check if the product already has this feature value
-            $exists = Db::getInstance()->getValue('
+        // Check which products already have this feature value
+        foreach ($affected_products as &$product) {
+            $has_feature = Db::getInstance()->getValue('
                 SELECT COUNT(*)
                 FROM ' . _DB_PREFIX_ . 'feature_product
-                WHERE id_product = ' . $id_product . '
-                AND id_feature = ' . $id_feature . '
-                AND id_feature_value = ' . $id_feature_value
+                WHERE id_product = ' . (int)$product['id_product'] . '
+                AND id_feature = ' . (int)$mapping_info['id_feature'] . '
+                AND id_feature_value = ' . (int)$mapping_info['id_feature_value']
             );
             
-            if (!$exists) {
-                // Add feature to product
-                Db::getInstance()->insert('feature_product', [
-                    'id_feature' => $id_feature,
-                    'id_product' => $id_product,
-                    'id_feature_value' => $id_feature_value,
-                ]);
-                $updated++;
-            }
+            $product['already_has_feature'] = (bool)$has_feature;
+            
+            // Get product link
+            $product['edit_url'] = $this->context->link->getAdminLink('AdminProducts', true, [
+                'id_product' => $product['id_product'],
+                'updateproduct' => 1
+            ]);
         }
         
-        return $updated;
+        return [
+            'feature_name' => $mapping_info['feature_name'],
+            'feature_value' => $mapping_info['value'],
+            'affected_products' => $affected_products,
+            'total_affected' => $total_affected,
+            'showing_limit' => $limit
+        ];
+    }
+    
+    protected function getDocumentationContent()
+    {
+        return [
+            'general' => [
+                'title' => $this->l('General Information'),
+                'content' => $this->l('This module allows you to automatically assign features to products based on their attributes. This is useful for filtering purposes and improving product search capabilities.'),
+                'contact' => $this->l('If you need help please contact developer amurdato@gmail.com')
+            ],
+            'mappings' => [
+                'title' => $this->l('Creating Mappings'),
+                'content' => $this->l('A mapping connects a feature value with one or more attributes. When a product has any of these attributes, the feature value will be automatically assigned to the product.'),
+                'steps' => [
+                    $this->l('Select a feature value from the dropdown list'),
+                    $this->l('Select one or more attributes that should trigger this feature value'),
+                    $this->l('Save the mapping'),
+                    $this->l('Use the "Generate Features" button to apply the mapping to existing products')
+                ]
+            ],
+            'preview' => [
+                'title' => $this->l('Preview Function'),
+                'content' => $this->l('Before applying a mapping to your products, use the Preview function to see which products will be affected. This helps prevent unintended changes to your catalog.'),
+            ],
+            'batch' => [
+                'title' => $this->l('Batch Processing'),
+                'content' => $this->l('For large catalogs, the module uses batch processing to prevent timeout issues. You can adjust the batch size in the settings according to your server capabilities.'),
+                'tips' => [
+                    $this->l('Smaller batch sizes (20-50) are safer for shared hosting environments'),
+                    $this->l('Larger batch sizes (100-200) may be more efficient on dedicated servers'),
+                    $this->l('If you experience timeout errors, reduce the batch size')
+                ]
+            ],
+            'cron' => [
+                'title' => $this->l('CRON Job Configuration'),
+                'content' => $this->l('For regular updates, set up a CRON job to automatically generate features for all products on a scheduled basis. This ensures new products get features assigned properly.'),
+            ],
+            'bestPractices' => [
+                'title' => $this->l('Best Practices'),
+                'tips' => [
+                    $this->l('Create clear, specific mappings to avoid confusion'),
+                    $this->l('Use preview before applying changes to large product sets'),
+                    $this->l('Schedule CRON jobs during off-peak hours'),
+                    $this->l('Regularly check and update your mappings as your catalog grows'),
+                    $this->l('Consider the impact on product filtering when creating mappings')
+                ]
+            ],
+            'support' => [
+                'title' => $this->l('Support'),
+                'content' => $this->l('If you need help please contact developer amurdato@gmail.com')
+            ],
+        ];
     }
 }

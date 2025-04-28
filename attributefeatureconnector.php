@@ -9,7 +9,7 @@ class AttributeFeatureConnector extends Module
     {
         $this->name = 'attributefeatureconnector';
         $this->tab = 'administration';
-        $this->version = '1.0.9';
+        $this->version = '1.1.0';
         $this->author = 'Dainius';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = [
@@ -33,6 +33,9 @@ class AttributeFeatureConnector extends Module
         $token = bin2hex(random_bytes(16)); // 32 characters long
         Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_CRON_TOKEN', $token);
         
+        // Set default batch size for processing
+        Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_BATCH_SIZE', 50);
+        
         return parent::install() &&
             $this->registerHook('actionAdminControllerSetMedia') &&
             $this->installTab();
@@ -44,6 +47,7 @@ class AttributeFeatureConnector extends Module
         
         // Remove configuration values
         Configuration::deleteByName('ATTRIBUTE_FEATURE_CONNECTOR_CRON_TOKEN');
+        Configuration::deleteByName('ATTRIBUTE_FEATURE_CONNECTOR_BATCH_SIZE');
         
         return parent::uninstall() &&
             $this->uninstallTab();

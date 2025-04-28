@@ -4,15 +4,18 @@
 }
 
 /* Form controls styling */
-#mapping_form .form-group {
+#mapping_form .form-group,
+#edit_mapping_form .form-group {
     margin-bottom: 20px;
 }
 
-#mapping_form select {
+#mapping_form select,
+#edit_mapping_form select {
     width: 100%;
 }
 
-#mapping_form select[multiple] {
+#mapping_form select[multiple],
+#edit_mapping_form select[multiple] {
     height: 250px;
 }
 
@@ -168,4 +171,55 @@
 
 .run-cron-now i {
     margin-right: 5px;
+}
+
+/* Documentation modal styling */
+#documentationModal .tab-content {
+    padding-top: 20px;
+}
+
+#documentationModal .nav-tabs {
+    margin-bottom: 15px;
+}
+
+#documentationModal .panel {
+    box-shadow: none;
+    margin-bottom: 0;
+}
+
+#documentationModal h4 {
+    color: #00aff0;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+#documentationModal ul li,
+#documentationModal ol li {
+    margin-bottom: 8px;
+}
+
+/* Preview page styling */
+.badge {
+    background-color: #5bc0de;
+    margin-left: 10px;
+}
+
+.panel-heading-action {
+    float: right;
+    margin-top: -6px;
+}
+
+.table-responsive {
+    border: none;
+    overflow-x: auto;
+}
+
+/* Batch processing settings */
+#batch_form .input-group {
+    max-width: 300px;
+}
+
+#batch_form input[type="number"] {
+    text-align: center;
 }
