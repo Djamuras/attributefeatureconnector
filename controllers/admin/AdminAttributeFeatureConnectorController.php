@@ -74,15 +74,28 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             }
         }
         
+        // Get all mapping categories
+        $categories = $this->getMappingCategories();
+        
+        // Get selected category filter
+        $selected_category = (int)Tools::getValue('category_filter', 0);
+        
         // Pagination for mappings
         $page = (int)Tools::getValue('page', 1);
         $items_per_page = 10;
         
-        // Get total count of mappings
+        // Build the where clause for category filter
+        $category_where = '';
+        if ($selected_category > 0) {
+            $category_where = ' WHERE afm.id_category = ' . (int)$selected_category;
+        }
+        
+        // Get total count of mappings with filter
         $total_mappings = (int)Db::getInstance()->getValue('
             SELECT COUNT(*) 
-            FROM ' . _DB_PREFIX_ . 'attribute_feature_mapping
-        ');
+            FROM ' . _DB_PREFIX_ . 'attribute_feature_mapping afm
+            ' . $category_where
+        );
         
         $total_pages = ceil($total_mappings / $items_per_page);
         if ($page < 1) {
@@ -91,8 +104,8 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             $page = $total_pages;
         }
         
-        // Get existing mappings with pagination
-        $mappings = $this->getMappings($page, $items_per_page);
+        // Get existing mappings with pagination and category filter
+        $mappings = $this->getMappings($page, $items_per_page, $selected_category);
         
         // Get mapping being edited if applicable
         $mapping_to_edit = null;
@@ -113,13 +126,14 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             // If the mapping is not in the current page, fetch it separately
             if (!$mapping_to_edit) {
                 $query = new DbQuery();
-                $query->select('afm.*, fvl.value, f.name as feature_name, GROUP_CONCAT(al.name SEPARATOR ", ") as attributes')
+                $query->select('afm.*, fvl.value, f.name as feature_name, GROUP_CONCAT(al.name SEPARATOR ", ") as attributes, c.name as category_name')
                     ->from('attribute_feature_mapping', 'afm')
                     ->leftJoin('attribute_feature_mapping_attributes', 'afma', 'afm.id_mapping = afma.id_mapping')
                     ->leftJoin('feature_value_lang', 'fvl', 'afm.id_feature_value = fvl.id_feature_value AND fvl.id_lang = ' . (int)$this->context->language->id)
                     ->leftJoin('feature_value', 'fv', 'fvl.id_feature_value = fv.id_feature_value')
                     ->leftJoin('feature_lang', 'f', 'fv.id_feature = f.id_feature AND f.id_lang = ' . (int)$this->context->language->id)
                     ->leftJoin('attribute_lang', 'al', 'afma.id_attribute = al.id_attribute AND al.id_lang = ' . (int)$this->context->language->id)
+                    ->leftJoin('attribute_feature_mapping_category', 'c', 'afm.id_category = c.id_category')
                     ->where('afm.id_mapping = ' . (int)$edit_mapping_id)
                     ->groupBy('afm.id_mapping');
                 
@@ -131,7 +145,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             }
         }
         
-        $pagination_links = $this->generatePaginationLinks($page, $total_pages);
+        $pagination_links = $this->generatePaginationLinks($page, $total_pages, $selected_category);
         
         // Get CRON token and URL
         $cron_token = Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_CRON_TOKEN');
@@ -157,6 +171,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             'delete_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=deleteMapping',
             'edit_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=editMapping',
             'cancel_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector'),
+            'analytics_url' => $this->context->link->getAdminLink('AdminAttributeFeatureAnalytics'),
             'current_page' => $page,
             'total_pages' => $total_pages,
             'pagination_links' => $pagination_links,
@@ -165,16 +180,24 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             'cron_token' => $cron_token,
             'cron_url' => $cron_url,
             'batch_size' => $batch_size,
-            'documentation' => $documentation
+            'documentation' => $documentation,
+            'categories' => $categories,
+            'selected_category' => $selected_category,
+            'manage_categories_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=manageCategories'
         ]);
         
         return $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'attributefeatureconnector/views/templates/admin/configure.tpl');
     }
     
-    private function generatePaginationLinks($current_page, $total_pages)
+    private function generatePaginationLinks($current_page, $total_pages, $category_filter = 0)
     {
         $links = [];
         $base_url = $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&page=';
+        
+        // Add category filter to URLs if needed
+        if ($category_filter > 0) {
+            $base_url .= '&category_filter=' . (int)$category_filter;
+        }
         
         // Previous link
         if ($current_page > 1) {
@@ -203,24 +226,45 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         if (Tools::isSubmit('submitMapping')) {
             $id_feature_value = (int)Tools::getValue('id_feature_value');
             $selected_attributes = Tools::getValue('selected_attributes');
+            $id_category = (int)Tools::getValue('id_category', 0);
             
             if (!$id_feature_value || !is_array($selected_attributes) || empty($selected_attributes)) {
                 $this->errors[] = $this->l('Please select a feature and at least one attribute');
                 return;
             }
             
-            $this->saveMapping($id_feature_value, $selected_attributes);
+            // If no category is selected, use the default
+            if ($id_category <= 0) {
+                $id_category = $this->getDefaultCategoryId();
+            }
+            
+            $this->saveMapping($id_feature_value, $selected_attributes, $id_category);
             $this->confirmations[] = $this->l('Mapping saved successfully');
         } elseif (Tools::isSubmit('submitEditMapping')) {
             $id_mapping = (int)Tools::getValue('id_mapping');
             $selected_attributes = Tools::getValue('selected_attributes');
+            $id_category = (int)Tools::getValue('id_category', 0);
             
             if (!$id_mapping || !is_array($selected_attributes) || empty($selected_attributes)) {
                 $this->errors[] = $this->l('Please select at least one attribute');
                 return;
             }
             
-            $this->updateMapping($id_mapping, $selected_attributes);
+            // If no category is selected, keep the existing one
+            if ($id_category <= 0) {
+                $current_mapping = Db::getInstance()->getRow('
+                    SELECT id_category FROM ' . _DB_PREFIX_ . 'attribute_feature_mapping 
+                    WHERE id_mapping = ' . (int)$id_mapping
+                );
+                
+                if ($current_mapping && isset($current_mapping['id_category'])) {
+                    $id_category = (int)$current_mapping['id_category'];
+                } else {
+                    $id_category = $this->getDefaultCategoryId();
+                }
+            }
+            
+            $this->updateMapping($id_mapping, $selected_attributes, $id_category);
             $this->confirmations[] = $this->l('Mapping updated successfully');
         } elseif (Tools::isSubmit('regenerate_cron_token')) {
             $new_token = bin2hex(random_bytes(16)); // 32 characters long
@@ -234,8 +278,110 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             } else {
                 $this->errors[] = $this->l('Batch size must be greater than 0');
             }
+        } elseif (Tools::isSubmit('submitNewCategory')) {
+            $name = Tools::getValue('category_name');
+            $description = Tools::getValue('category_description');
+            
+            if (empty($name)) {
+                $this->errors[] = $this->l('Category name is required');
+                return;
+            }
+            
+            $result = $this->addMappingCategory($name, $description);
+            if ($result) {
+                $this->confirmations[] = $this->l('Category added successfully');
+            } else {
+                $this->errors[] = $this->l('Error adding category');
+            }
+        } elseif (Tools::isSubmit('submitEditCategory')) {
+            $id_category = (int)Tools::getValue('id_category');
+            $name = Tools::getValue('category_name');
+            $description = Tools::getValue('category_description');
+            
+            if (!$id_category || empty($name)) {
+                $this->errors[] = $this->l('Category ID and name are required');
+                return;
+            }
+            
+            $result = $this->updateMappingCategory($id_category, $name, $description);
+            if ($result) {
+                $this->confirmations[] = $this->l('Category updated successfully');
+            } else {
+                $this->errors[] = $this->l('Error updating category');
+            }
+        } elseif (Tools::getValue('action') === 'deleteCategory') {
+            $id_category = (int)Tools::getValue('id_category');
+            
+            if ($id_category) {
+                // Check if category is in use
+                $in_use = Db::getInstance()->getValue('
+                    SELECT COUNT(*) FROM ' . _DB_PREFIX_ . 'attribute_feature_mapping 
+                    WHERE id_category = ' . (int)$id_category
+                );
+                
+                if ($in_use > 0) {
+                    // Move mappings to default category before deleting
+                    $default_category_id = $this->getDefaultCategoryId();
+                    
+                    if ($default_category_id && $default_category_id != $id_category) {
+                        Db::getInstance()->update('attribute_feature_mapping',
+                            ['id_category' => $default_category_id],
+                            'id_category = ' . (int)$id_category
+                        );
+                    } else {
+                        $this->errors[] = $this->l('Cannot delete category: it is being used and no default category exists');
+                        return;
+                    }
+                }
+                
+                // Delete the category
+                $result = Db::getInstance()->delete('attribute_feature_mapping_category', 'id_category = ' . (int)$id_category);
+                
+                if ($result) {
+                    $this->confirmations[] = $this->l('Category deleted successfully');
+                } else {
+                    $this->errors[] = $this->l('Error deleting category');
+                }
+            }
+        } elseif (Tools::getValue('action') === 'manageCategories') {
+            // Display category management interface
+            $categories = $this->getMappingCategories();
+            $category_to_edit = null;
+            
+            if (Tools::getValue('edit_category')) {
+                $id_category = (int)Tools::getValue('edit_category');
+                foreach ($categories as $category) {
+                    if ((int)$category['id_category'] === $id_category) {
+                        $category_to_edit = $category;
+                        break;
+                    }
+                }
+            }
+            
+            $this->context->smarty->assign([
+                'categories' => $categories,
+                'category_to_edit' => $category_to_edit,
+                'back_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector'),
+                'delete_category_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=deleteCategory',
+                'edit_category_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=manageCategories&edit_category='
+            ]);
+            
+            $this->content = $this->context->smarty->fetch(_PS_MODULE_DIR_ . 'attributefeatureconnector/views/templates/admin/categories.tpl');
+            return;
         } elseif (Tools::getValue('action') === 'generateAllFeatures') {
+            $start_time = microtime(true);
             $result = $this->generateAllFeatures();
+            $execution_time = microtime(true) - $start_time;
+            
+            // Log performance
+            AttributeFeatureConnector::logPerformance(
+                'generate_all', 
+                null, 
+                $result['processed'], 
+                $result['updated'],
+                $execution_time
+            );
+            
             if ($result['success']) {
                 $this->confirmations[] = sprintf($this->l('All features generated successfully. %d products updated.'), $result['updated']);
             } else {
@@ -244,7 +390,19 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         } elseif (Tools::getValue('action') === 'generateFeatures') {
             $id_mapping = (int)Tools::getValue('id_mapping');
             if ($id_mapping) {
+                $start_time = microtime(true);
                 $result = $this->generateFeaturesForMapping($id_mapping);
+                $execution_time = microtime(true) - $start_time;
+                
+                // Log performance
+                AttributeFeatureConnector::logPerformance(
+                    'generate_single', 
+                    $id_mapping, 
+                    $result['processed'], 
+                    $result['updated'],
+                    $execution_time
+                );
+                
                 if ($result['success']) {
                     $this->confirmations[] = sprintf($this->l('Features for this mapping generated successfully. %d products updated.'), $result['updated']);
                 } else {
@@ -254,7 +412,19 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         } elseif (Tools::getValue('action') === 'undoMapping') {
             $id_mapping = (int)Tools::getValue('id_mapping');
             if ($id_mapping) {
+                $start_time = microtime(true);
                 $result = $this->undoMapping($id_mapping);
+                $execution_time = microtime(true) - $start_time;
+                
+                // Log performance
+                AttributeFeatureConnector::logPerformance(
+                    'undo_mapping', 
+                    $id_mapping, 
+                    $result['processed'], 
+                    $result['updated'],
+                    $execution_time
+                );
+                
                 if ($result['success']) {
                     $this->confirmations[] = sprintf($this->l('Features for this mapping removed successfully. %d products updated.'), $result['updated']);
                 } else {
@@ -289,20 +459,27 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         parent::postProcess();
     }
     
-    protected function getMappings($page = 1, $items_per_page = 10)
+    protected function getMappings($page = 1, $items_per_page = 10, $category_filter = 0)
     {
         $mappings = [];
         $offset = ($page - 1) * $items_per_page;
         
         $query = new DbQuery();
-        $query->select('afm.*, fvl.value, f.name as feature_name, f.id_feature, GROUP_CONCAT(al.name SEPARATOR ", ") as attributes')
+        $query->select('afm.*, fvl.value, f.name as feature_name, f.id_feature, c.name as category_name, GROUP_CONCAT(al.name SEPARATOR ", ") as attributes')
             ->from('attribute_feature_mapping', 'afm')
             ->leftJoin('attribute_feature_mapping_attributes', 'afma', 'afm.id_mapping = afma.id_mapping')
             ->leftJoin('feature_value_lang', 'fvl', 'afm.id_feature_value = fvl.id_feature_value AND fvl.id_lang = ' . (int)$this->context->language->id)
             ->leftJoin('feature_value', 'fv', 'fvl.id_feature_value = fv.id_feature_value')
             ->leftJoin('feature_lang', 'f', 'fv.id_feature = f.id_feature AND f.id_lang = ' . (int)$this->context->language->id)
             ->leftJoin('attribute_lang', 'al', 'afma.id_attribute = al.id_attribute AND al.id_lang = ' . (int)$this->context->language->id)
-            ->groupBy('afm.id_mapping')
+            ->leftJoin('attribute_feature_mapping_category', 'c', 'afm.id_category = c.id_category');
+            
+        // Add category filter if needed
+        if ($category_filter > 0) {
+            $query->where('afm.id_category = ' . (int)$category_filter);
+        }
+        
+        $query->groupBy('afm.id_mapping')
             ->orderBy('afm.date_add DESC')
             ->limit($items_per_page, $offset);
         
@@ -332,11 +509,12 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         return $attributes;
     }
     
-    protected function saveMapping($id_feature_value, $selected_attributes)
+    protected function saveMapping($id_feature_value, $selected_attributes, $id_category)
     {
         // Insert mapping
         $mapping = [
             'id_feature_value' => (int)$id_feature_value,
+            'id_category' => (int)$id_category,
             'date_add' => date('Y-m-d H:i:s'),
             'date_upd' => date('Y-m-d H:i:s'),
         ];
@@ -355,10 +533,11 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         return true;
     }
 
-    protected function updateMapping($id_mapping, $selected_attributes)
+    protected function updateMapping($id_mapping, $selected_attributes, $id_category)
     {
-        // Update mapping date
+        // Update mapping date and category
         Db::getInstance()->update('attribute_feature_mapping', [
+            'id_category' => (int)$id_category,
             'date_upd' => date('Y-m-d H:i:s'),
         ], 'id_mapping = ' . (int)$id_mapping);
         
@@ -387,6 +566,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
     public function generateAllFeatures()
     {
         $updated = 0;
+        $processed = 0;
         
         // Get all mappings
         $mappings = [];
@@ -397,7 +577,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         $result = Db::getInstance()->executeS($query);
         
         if (!$result) {
-            return ['success' => false, 'updated' => 0];
+            return ['success' => false, 'updated' => 0, 'processed' => 0];
         }
         
         // Get batch size from configuration
@@ -409,15 +589,17 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             $mapping_result = $this->generateFeaturesForMapping($id_mapping, $batch_size);
             if ($mapping_result['success']) {
                 $updated += $mapping_result['updated'];
+                $processed += $mapping_result['processed'];
             }
         }
         
-        return ['success' => true, 'updated' => $updated];
+        return ['success' => true, 'updated' => $updated, 'processed' => $processed];
     }
     
     protected function generateFeaturesForMapping($id_mapping, $batch_size = null)
     {
         $updated = 0;
+        $processed = 0;
         
         // Get mapping details
         $query = new DbQuery();
@@ -429,7 +611,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         $result = Db::getInstance()->executeS($query);
         
         if (!$result) {
-            return ['success' => false, 'updated' => 0];
+            return ['success' => false, 'updated' => 0, 'processed' => 0];
         }
         
         // Organize the attribute IDs
@@ -446,14 +628,17 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         }
         
         // Process the mapping with batch processing
-        $updated = $this->processMappingInBatches($id_feature_value, $attributes, $batch_size);
+        $result = $this->processMappingInBatches($id_feature_value, $attributes, $batch_size);
+        $updated = $result['updated'];
+        $processed = $result['processed'];
         
-        return ['success' => true, 'updated' => $updated];
+        return ['success' => true, 'updated' => $updated, 'processed' => $processed];
     }
     
     protected function processMappingInBatches($id_feature_value, $attributes, $batch_size)
     {
         $updated = 0;
+        $processed = 0;
         $offset = 0;
         
         // Get feature information
@@ -473,6 +658,8 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             if (!$products || empty($products)) {
                 break; // No more products to process
             }
+            
+            $processed += count($products);
             
             // Process this batch
             foreach ($products as $product) {
@@ -507,12 +694,13 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             }
         }
         
-        return $updated;
+        return ['updated' => $updated, 'processed' => $processed];
     }
     
     protected function undoMapping($id_mapping)
     {
         $updated = 0;
+        $processed = 0;
         
         // Get mapping details
         $query = new DbQuery();
@@ -523,7 +711,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         $result = Db::getInstance()->getRow($query);
         
         if (!$result) {
-            return ['success' => false, 'updated' => 0];
+            return ['success' => false, 'updated' => 0, 'processed' => 0];
         }
         
         $id_feature_value = $result['id_feature_value'];
@@ -551,6 +739,8 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
                 break; // No more products to process
             }
             
+            $processed += count($products_with_feature);
+            
             // Remove features from products in this batch
             foreach ($products_with_feature as $product) {
                 $id_product = (int)$product['id_product'];
@@ -574,7 +764,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             }
         }
         
-        return ['success' => true, 'updated' => $updated];
+        return ['success' => true, 'updated' => $updated, 'processed' => $processed];
     }
     
     protected function previewMapping($id_mapping, $limit = 10)
@@ -668,6 +858,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
                 'content' => $this->l('A mapping connects a feature value with one or more attributes. When a product has any of these attributes, the feature value will be automatically assigned to the product.'),
                 'steps' => [
                     $this->l('Select a feature value from the dropdown list'),
+                    $this->l('Select a category for better organization (optional)'),
                     $this->l('Select one or more attributes that should trigger this feature value'),
                     $this->l('Save the mapping'),
                     $this->l('Use the "Generate Features" button to apply the mapping to existing products')
@@ -690,6 +881,15 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
                 'title' => $this->l('CRON Job Configuration'),
                 'content' => $this->l('For regular updates, set up a CRON job to automatically generate features for all products on a scheduled basis. This ensures new products get features assigned properly.'),
             ],
+            'categories' => [
+                'title' => $this->l('Mapping Categories'),
+                'content' => $this->l('Organize your mappings into categories for better management. This is especially useful for shops with many different product types or large numbers of mappings.'),
+                'tips' => [
+                    $this->l('Create categories based on product types or departments'),
+                    $this->l('Use the category filter to quickly find related mappings'),
+                    $this->l('Keep category names simple and descriptive')
+                ]
+            ],
             'bestPractices' => [
                 'title' => $this->l('Best Practices'),
                 'tips' => [
@@ -697,13 +897,75 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
                     $this->l('Use preview before applying changes to large product sets'),
                     $this->l('Schedule CRON jobs during off-peak hours'),
                     $this->l('Regularly check and update your mappings as your catalog grows'),
-                    $this->l('Consider the impact on product filtering when creating mappings')
+                    $this->l('Consider the impact on product filtering when creating mappings'),
+                    $this->l('Organize mappings into logical categories')
                 ]
             ],
+            'analytics' => [
+                'title' => $this->l('Performance Analytics'),
+                'content' => $this->l('The Analytics dashboard helps you optimize module performance and identify potential issues with your mappings.'),
+                'features' => [
+                    $this->l('Performance metrics track execution time and memory usage'),
+                    $this->l('Conflict detection finds and helps resolve conflicting attribute mappings'),
+                    $this->l('Auto-attribute suggestions can identify potential attributes from product descriptions'),
+                    $this->l('Batch size optimization based on your server performance')
+                ]
+            },
             'support' => [
                 'title' => $this->l('Support'),
                 'content' => $this->l('If you need help please contact developer amurdato@gmail.com')
             ],
         ];
+    }
+    
+    protected function getMappingCategories()
+    {
+        $query = new DbQuery();
+        $query->select('c.*, (SELECT COUNT(*) FROM ' . _DB_PREFIX_ . 'attribute_feature_mapping m WHERE m.id_category = c.id_category) as mappings_count')
+            ->from('attribute_feature_mapping_category', 'c')
+            ->orderBy('c.name ASC');
+            
+        $result = Db::getInstance()->executeS($query);
+        
+        return $result ? $result : [];
+    }
+    
+    protected function getDefaultCategoryId()
+    {
+        $query = new DbQuery();
+        $query->select('id_category')
+            ->from('attribute_feature_mapping_category')
+            ->where('name = "Default"')
+            ->orderBy('id_category ASC')
+            ->limit(1);
+            
+        $result = Db::getInstance()->getValue($query);
+        
+        if (!$result) {
+            // If no default category exists, create one
+            $this->addMappingCategory('Default', 'Default category for mappings');
+            return $this->getDefaultCategoryId();
+        }
+        
+        return (int)$result;
+    }
+    
+    protected function addMappingCategory($name, $description = '')
+    {
+        return Db::getInstance()->insert('attribute_feature_mapping_category', [
+            'name' => pSQL($name),
+            'description' => pSQL($description),
+            'date_add' => date('Y-m-d H:i:s'),
+            'date_upd' => date('Y-m-d H:i:s')
+        ]);
+    }
+    
+    protected function updateMappingCategory($id_category, $name, $description = '')
+    {
+        return Db::getInstance()->update('attribute_feature_mapping_category', [
+            'name' => pSQL($name),
+            'description' => pSQL($description),
+            'date_upd' => date('Y-m-d H:i:s')
+        ], 'id_category = ' . (int)$id_category);
     }
 }

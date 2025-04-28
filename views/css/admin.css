@@ -331,3 +331,153 @@ select.form-control {
     padding: 15px;
     background-color: #f9f9f9;
 }
+
+/* Analytics Dashboard Styling */
+.stat-item {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.stat-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.stat-label {
+    display: block;
+    font-weight: normal;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 18px;
+    font-weight: bold;
+    color: #00aff0;
+}
+
+/* Performance chart */
+#performanceChart {
+    max-height: 300px;
+}
+
+/* Category styling */
+.category-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    margin-right: 5px;
+    background-color: #5bc0de;
+    color: white;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+/* Filter form */
+#filter_form {
+    margin: 15px 0;
+    padding: 15px;
+    background-color: #f5f5f5;
+    border-radius: 3px;
+}
+
+#filter_form .input-group {
+    width: 100%;
+}
+
+#filter_form select {
+    min-width: 200px;
+}
+
+/* Conflict detection */
+.conflict-values {
+    padding-left: 15px;
+    margin: 0;
+}
+
+.conflict-values li {
+    margin-bottom: 5px;
+}
+
+.btn-group-vertical {
+    width: 100%;
+}
+
+.btn-group-vertical .btn {
+    margin-bottom: 3px;
+    text-align: left;
+}
+
+/* Suggestion highlighting */
+.progress {
+    margin-bottom: 0;
+    height: 15px;
+}
+
+/* Category management */
+.mappings-count {
+    font-weight: normal;
+    color: #777;
+    font-size: 0.9em;
+}
+
+/* Filter spacing */
+#filter_form {
+    margin-bottom: 20px;
+}
+
+/* Categories page styling */
+.panel .table {
+    margin-bottom: 0;
+}
+
+/* Analytics row styling */
+.performance-tips {
+    padding-left: 15px;
+}
+
+.performance-tips li {
+    margin-bottom: 10px;
+}
+
+/* Auto-suggestion styling */
+.suggestion-item {
+    background-color: #f9f9f9;
+    border-left: 3px solid #5bc0de;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 3px;
+}
+
+.suggestion-confidence {
+    display: inline-block;
+    padding: 3px 6px;
+    background-color: #5bc0de;
+    color: white;
+    border-radius: 3px;
+    font-size: 11px;
+    margin-left: 5px;
+}
+
+/* Better alignments of form elements */
+.form-horizontal .input-group {
+    max-width: 100%;
+}
+
+/* Category filter dropdown */
+select[name="category_filter"] {
+    min-width: 200px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .stat-item {
+        text-align: center;
+    }
+    
+    #filter_form .form-group {
+        width: 100%;
+    }
+}

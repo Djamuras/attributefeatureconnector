@@ -33,7 +33,21 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
         @set_time_limit(0);
         
         // Generate all features - implementation moved directly into this controller
+        $start_time = microtime(true);
         $result = $this->generateAllFeatures();
+        $execution_time = microtime(true) - $start_time;
+        
+        // Log performance metrics
+        AttributeFeatureConnector::logPerformance(
+            'cron_job',
+            null,
+            $result['processed'],
+            $result['updated'],
+            $execution_time
+        );
+        
+        // Add execution time to result
+        $result['execution_time'] = round($execution_time, 2);
         
         // Output the result
         header('Content-Type: application/json');
@@ -46,6 +60,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
     protected function generateAllFeatures()
     {
         $updated = 0;
+        $processed = 0;
         $errors = [];
         $start_time = microtime(true);
         
@@ -61,6 +76,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
             return [
                 'success' => false, 
                 'updated' => 0,
+                'processed' => 0,
                 'message' => 'No mappings found',
                 'execution_time' => $this->getExecutionTime($start_time)
             ];
@@ -76,6 +92,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
                 $mapping_result = $this->generateFeaturesForMapping($id_mapping, $batch_size);
                 if ($mapping_result['success']) {
                     $updated += $mapping_result['updated'];
+                    $processed += $mapping_result['processed'];
                 } else {
                     $errors[] = 'Error processing mapping ID ' . $id_mapping . ': ' . $mapping_result['message'];
                 }
@@ -87,6 +104,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
         return [
             'success' => true,
             'updated' => $updated,
+            'processed' => $processed,
             'mappings_processed' => count($result),
             'errors' => $errors,
             'execution_time' => $this->getExecutionTime($start_time)
@@ -99,6 +117,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
     protected function generateFeaturesForMapping($id_mapping, $batch_size = null)
     {
         $updated = 0;
+        $processed = 0;
         $start_time = microtime(true);
         
         // Get mapping details
@@ -114,6 +133,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
             return [
                 'success' => false, 
                 'updated' => 0,
+                'processed' => 0,
                 'message' => 'Mapping not found or has no attributes',
                 'execution_time' => $this->getExecutionTime($start_time)
             ];
@@ -133,11 +153,24 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
         }
         
         // Process the mapping with batch processing
-        $updated = $this->processMappingInBatches($id_feature_value, $attributes, $batch_size);
+        $result = $this->processMappingInBatches($id_feature_value, $attributes, $batch_size);
+        $updated = $result['updated'];
+        $processed = $result['processed'];
+        
+        // Log individual mapping performance
+        AttributeFeatureConnector::logPerformance(
+            'cron_mapping', 
+            $id_mapping,
+            $processed,
+            $updated,
+            $this->getExecutionTime($start_time),
+            $batch_size
+        );
         
         return [
             'success' => true, 
             'updated' => $updated,
+            'processed' => $processed,
             'execution_time' => $this->getExecutionTime($start_time)
         ];
     }
@@ -148,6 +181,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
     protected function processMappingInBatches($id_feature_value, $attributes, $batch_size)
     {
         $updated = 0;
+        $processed = 0;
         $offset = 0;
         
         // Get feature information
@@ -155,7 +189,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
         $id_feature = $feature_value->id_feature;
         
         if (!$id_feature) {
-            return $updated;
+            return ['updated' => 0, 'processed' => 0];
         }
         
         while (true) {
@@ -171,6 +205,8 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
             if (!$products || empty($products)) {
                 break; // No more products to process
             }
+            
+            $processed += count($products);
             
             // Process this batch
             foreach ($products as $product) {
@@ -205,7 +241,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
             }
         }
         
-        return $updated;
+        return ['updated' => $updated, 'processed' => $processed];
     }
     
     /**

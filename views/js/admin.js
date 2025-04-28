@@ -34,6 +34,51 @@ $(document).ready(function() {
         // Ensure first tab is active when modal opens
         $('#documentationModal .nav-tabs a:first').tab('show');
     });
+    
+    // Auto-submit category filter form on change
+    $('select[name="category_filter"]').on('change', function() {
+        $('#filter_form').submit();
+    });
+    
+    // Initialize tooltips for suggestion items
+    $('.suggestion-item [data-toggle="tooltip"]').tooltip();
+    
+    // Run CRON job animation
+    $('.run-cron-now').hover(
+        function() { $(this).find('i').addClass('icon-spin'); },
+        function() { $(this).find('i').removeClass('icon-spin'); }
+    );
+    
+    // Analytics dashboard interactions
+    if ($('#performanceChart').length > 0) {
+        // Handled by Chart.js in the template
+    }
+    
+    // Process suggestion confirmation
+    $('.process-suggestion').on('click', function(e) {
+        if (!confirm('Do you want to process this suggestion? This will add it to your attributes.')) {
+            e.preventDefault();
+        }
+    });
+    
+    // Ignore suggestion confirmation
+    $('.ignore-suggestion').on('click', function(e) {
+        if (!confirm('Are you sure you want to ignore this suggestion?')) {
+            e.preventDefault();
+        }
+    });
+    
+    // Conflict resolution confirmation
+    $('.resolve-conflict').on('click', function(e) {
+        if (!confirm('This will remove the attribute from other conflicting mappings. Continue?')) {
+            e.preventDefault();
+        }
+    });
+    
+    // Auto-filter submit on category filter change
+    $('#category_filter').on('change', function() {
+        $('#filter_form').submit();
+    });
 });
 
 // Function to copy text to clipboard

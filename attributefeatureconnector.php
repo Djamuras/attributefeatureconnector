@@ -9,7 +9,7 @@ class AttributeFeatureConnector extends Module
     {
         $this->name = 'attributefeatureconnector';
         $this->tab = 'administration';
-        $this->version = '1.1.0';
+        $this->version = '1.2.0';
         $this->author = 'Dainius';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = [
@@ -38,7 +38,8 @@ class AttributeFeatureConnector extends Module
         
         return parent::install() &&
             $this->registerHook('actionAdminControllerSetMedia') &&
-            $this->installTab();
+            $this->installTab('AdminAttributeFeatureConnector', 'Attribute-Feature Connector', 'AdminParentModulesSf') &&
+            $this->installTab('AdminAttributeFeatureAnalytics', 'Attribute-Feature Analytics', 'AdminParentModulesSf');
     }
 
     public function uninstall()
@@ -50,27 +51,28 @@ class AttributeFeatureConnector extends Module
         Configuration::deleteByName('ATTRIBUTE_FEATURE_CONNECTOR_BATCH_SIZE');
         
         return parent::uninstall() &&
-            $this->uninstallTab();
+            $this->uninstallTab('AdminAttributeFeatureConnector') &&
+            $this->uninstallTab('AdminAttributeFeatureAnalytics');
     }
 
-    protected function installTab()
+    protected function installTab($className, $tabName, $parentClassName)
     {
         $tab = new Tab();
         $tab->active = 1;
-        $tab->class_name = 'AdminAttributeFeatureConnector';
+        $tab->class_name = $className;
         $tab->name = array();
         foreach (Language::getLanguages(true) as $lang) {
-            $tab->name[$lang['id_lang']] = 'Attribute-Feature Connector';
+            $tab->name[$lang['id_lang']] = $tabName;
         }
-        $tab->id_parent = (int)Tab::getIdFromClassName('AdminParentModulesSf');
+        $tab->id_parent = (int)Tab::getIdFromClassName($parentClassName);
         $tab->module = $this->name;
         
         return $tab->add();
     }
 
-    protected function uninstallTab()
+    protected function uninstallTab($className)
     {
-        $id_tab = (int)Tab::getIdFromClassName('AdminAttributeFeatureConnector');
+        $id_tab = (int)Tab::getIdFromClassName($className);
         if ($id_tab) {
             $tab = new Tab($id_tab);
             return $tab->delete();
@@ -86,9 +88,60 @@ class AttributeFeatureConnector extends Module
 
     public function hookActionAdminControllerSetMedia()
     {
-        if (Tools::getValue('controller') === 'AdminAttributeFeatureConnector') {
+        $controller = Tools::getValue('controller');
+        if ($controller === 'AdminAttributeFeatureConnector') {
             $this->context->controller->addJS($this->_path.'views/js/admin.js');
             $this->context->controller->addCSS($this->_path.'views/css/admin.css');
+        } elseif ($controller === 'AdminAttributeFeatureAnalytics') {
+            $this->context->controller->addJS($this->_path.'views/js/admin.js');
+            $this->context->controller->addCSS($this->_path.'views/css/admin.css');
+            $this->context->controller->addJS('https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js');
+        }
+    }
+    
+    /**
+     * Upon module update
+     */
+    public function upgrade($old_version, $new_version)
+    {
+        // Version-specific upgrades
+        if (version_compare($old_version, '1.2.0', '<')) {
+            // Execute update SQL for version 1.2.0
+            include(dirname(__FILE__).'/sql/update-1.2.0.php');
+            
+            // Install the new admin tab for analytics
+            $this->installTab('AdminAttributeFeatureAnalytics', 'Attribute-Feature Analytics', 'AdminParentModulesSf');
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Log performance metrics
+     */
+    public static function logPerformance($operation, $id_mapping = null, $products_processed = 0, $products_updated = 0, $execution_time = 0, $batch_size = null)
+    {
+        if ($batch_size === null) {
+            $batch_size = (int)Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_BATCH_SIZE', 50);
+        }
+        
+        try {
+            $memory_usage = memory_get_peak_usage(true);
+            
+            Db::getInstance()->insert('attribute_feature_performance_log', [
+                'operation' => pSQL($operation),
+                'id_mapping' => $id_mapping ? (int)$id_mapping : null,
+                'products_processed' => (int)$products_processed,
+                'products_updated' => (int)$products_updated,
+                'execution_time' => (float)$execution_time,
+                'memory_usage' => (int)$memory_usage,
+                'batch_size' => (int)$batch_size,
+                'date_add' => date('Y-m-d H:i:s')
+            ]);
+            
+            return true;
+        } catch (Exception $e) {
+            return false;
         }
     }
 }

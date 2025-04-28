@@ -2,7 +2,7 @@
 <module>
     <name>attributefeatureconnector</name>
     <displayName><![CDATA[Attribute-Feature Connector]]></displayName>
-    <version><![CDATA[1.0.9]]></version>
+    <version><![CDATA[1.2.0]]></version>
     <description><![CDATA[Automatically assign features to products based on their attributes]]></description>
     <author><![CDATA[Dainius]]></author>
     <tab><![CDATA[administration]]></tab>
