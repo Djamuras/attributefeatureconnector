@@ -55,9 +55,6 @@
                                 <div class="afc-picker-column">
                                     <div class="afc-picker-head">
                                         <strong>{l s='Available attributes' mod='attributefeatureconnector'}</strong>
-                                        <button type="button" class="btn btn-default btn-xs afc-picker-add-visible">
-                                            <i class="icon-plus"></i> {l s='Add visible' mod='attributefeatureconnector'}
-                                        </button>
                                     </div>
                                     <div class="afc-picker-list afc-picker-available">
                                         {foreach $attribute_options as $attribute}
@@ -129,9 +126,6 @@
                                 <div class="afc-picker-column">
                                     <div class="afc-picker-head">
                                         <strong>{l s='Available attributes' mod='attributefeatureconnector'}</strong>
-                                        <button type="button" class="btn btn-default btn-xs afc-picker-add-visible">
-                                            <i class="icon-plus"></i> {l s='Add visible' mod='attributefeatureconnector'}
-                                        </button>
                                     </div>
                                     <div class="afc-picker-list afc-picker-available">
                                         {foreach $attribute_options as $attribute}
@@ -499,6 +493,9 @@
                             <a href="#doc-mappings" aria-controls="mappings" role="tab" data-toggle="tab">{$documentation.mappings.title}</a>
                         </li>
                         <li role="presentation">
+                            <a href="#doc-import-export" aria-controls="import-export" role="tab" data-toggle="tab">{$documentation.importExport.title}</a>
+                        </li>
+                        <li role="presentation">
                             <a href="#doc-category-mapping" aria-controls="category-mapping" role="tab" data-toggle="tab">{$documentation.categoryMapping.title}</a>
                         </li>
                         <li role="presentation">
@@ -543,6 +540,26 @@
                                             <li>{$step}</li>
                                         {/foreach}
                                     </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div role="tabpanel" class="tab-pane" id="doc-import-export">
+                            <div class="panel">
+                                <div class="panel-body">
+                                    <p>{$documentation.importExport.content}</p>
+                                    <h4>{l s='Steps:' mod='attributefeatureconnector'}</h4>
+                                    <ol>
+                                        {foreach from=$documentation.importExport.steps item=step}
+                                            <li>{$step}</li>
+                                        {/foreach}
+                                    </ol>
+                                    <h4>{l s='Notes:' mod='attributefeatureconnector'}</h4>
+                                    <ul>
+                                        {foreach from=$documentation.importExport.notes item=note}
+                                            <li>{$note}</li>
+                                        {/foreach}
+                                    </ul>
                                 </div>
                             </div>
                         </div>

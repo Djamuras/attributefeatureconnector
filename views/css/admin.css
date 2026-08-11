@@ -245,6 +245,17 @@
 }
 .bootstrap .btn-action i { margin: 0; }
 .bootstrap .btn-group .btn-action + .btn-action { margin-left: 3px; }
+.bootstrap .tooltip {
+    pointer-events: none;
+    z-index: 1070;
+}
+.bootstrap .tooltip-inner {
+    max-width: 220px;
+    padding: 5px 8px;
+    font-size: 12px;
+    border-radius: var(--afc-radius-xs);
+    white-space: nowrap;
+}
 
 /* ── Forms ───────────────────────────────────────────── */
 .bootstrap .form-group {

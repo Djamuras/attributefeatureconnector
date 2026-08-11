@@ -244,11 +244,5 @@ $(document).ready(function() {
         $('#feature_value_select, #category_select').select2();
         $('#edit_category_select').select2();
     }
-    
-    // Add tooltips to action buttons
-    $('.btn-action').tooltip({
-        placement: 'top',
-        container: 'body'
-    });
 });
 </script>

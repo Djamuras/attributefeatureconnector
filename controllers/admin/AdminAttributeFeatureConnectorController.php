@@ -998,12 +998,27 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             ],
             'mappings' => [
                 'title' => $this->l('Attribute Mappings'),
-                'content' => $this->l('An attribute mapping connects a feature value with one or more product attributes. When a product has any of these attributes, the feature value will be automatically assigned to the product.'),
+                'content' => $this->l('An attribute mapping connects one feature value with one or more product attributes. The picker lets you filter by attribute group, search attributes, add visible results, and review selected attributes before saving.'),
                 'steps' => [
                     $this->l('Select a feature value from the dropdown list'),
-                    $this->l('Select one or more attributes that should trigger this feature value'),
+                    $this->l('Use the attribute group filter or search field to find the attributes you need'),
+                    $this->l('Move attributes from Available attributes to Selected attributes'),
                     $this->l('Save the mapping'),
                     $this->l('Use the "Generate Features" button to apply the mapping to existing products')
+                ]
+            ],
+            'importExport' => [
+                'title' => $this->l('Import / Export'),
+                'content' => $this->l('Use JSON export before reinstalling the module or moving mappings between shops. Import does not rely on old database IDs; it matches by feature name, feature value, attribute group, and attribute value.'),
+                'steps' => [
+                    $this->l('Click Export JSON to download all current attribute mappings'),
+                    $this->l('After reinstalling, upload the JSON file and click Preview Import'),
+                    $this->l('Review the import report table for new mappings, updates, duplicates, and missing items'),
+                    $this->l('Click Confirm Import only when the preview looks correct')
+                ],
+                'notes' => [
+                    $this->l('Import uses merge mode: existing mappings are kept and only missing attribute links are added'),
+                    $this->l('Rows with missing features or attributes are skipped and shown in the report')
                 ]
             ],
             'categoryMapping' => [
@@ -1019,7 +1034,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             ],
             'preview' => [
                 'title' => $this->l('Preview Function'),
-                'content' => $this->l('Before applying a mapping to your products, use the Preview function to see which products will be affected. This helps prevent unintended changes to your catalog.'),
+                'content' => $this->l('Before applying a saved mapping to products, use Preview to see which products will be affected. Import also has its own preview report before any mappings are written to the database.'),
             ],
             'batch' => [
                 'title' => $this->l('Batch Processing'),
@@ -1039,6 +1054,8 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
                 'tips' => [
                     $this->l('Create clear, specific mappings to avoid confusion'),
                     $this->l('Use preview before applying changes to large product sets'),
+                    $this->l('Export mappings before reinstalling or resetting the module'),
+                    $this->l('Check the import report before confirming imported mappings'),
                     $this->l('Schedule CRON jobs during off-peak hours'),
                     $this->l('Regularly check and update your mappings as your catalog grows'),
                     $this->l('Consider the impact on product filtering when creating mappings')

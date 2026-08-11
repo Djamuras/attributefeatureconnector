@@ -36,7 +36,6 @@ $_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorc
 $_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_7091926f5ad7e9fc0a19c1d6ce9a2490'] = 'Preview Function';
 $_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_d67edb92de8bd1e1adcdea05e7df3def'] = 'Batch Processing';
 $_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_1fdccece411d9d6e8e26ec3cfa88a35b'] = 'CRON Job Configuration';
-$_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_abe4fd6c4d8bde9c20224136dcbd8e82'] = 'Mapping Organization Categories';
 $_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_c0bd7654d5b278e65f21cf4e9153fdb4'] = 'Best Practices';
 $_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_a4aa2b487b43f41ec9acbfa8c66da0c3'] = 'Tips:';
 $_MODULE['<{attributefeatureconnector}prestashop>adminattributefeatureconnectorcontroller_0e2fb5b02182fd28b9b96e86ed27838f'] = 'If you need help please contact developer amurdato@gmail.com';
@@ -93,9 +92,6 @@ $_MODULE['<{attributefeatureconnector}prestashop>configure_7e81a30e707b7d6a3a64e
 $_MODULE['<{attributefeatureconnector}prestashop>configure_0c1bbd5dad952e1dba1854c20f9a1ddd'] = 'Run CRON Job Now';
 $_MODULE['<{attributefeatureconnector}prestashop>configure_5d3ace97e37a30a4c86db28792962596'] = 'This will execute the CRON job now. Continue?';
 $_MODULE['<{attributefeatureconnector}prestashop>configure_4e98a9d9c469bebb1a7bd77c16db7300'] = 'Current Mappings';
-$_MODULE['<{attributefeatureconnector}prestashop>configure_abe4fd6c4d8bde9c20224136dcbd8e82'] = 'Manage Categories';
-$_MODULE['<{attributefeatureconnector}prestashop>configure_9c8ff073a16c6b1a8539d2bc6824dbcc'] = 'Filter by Category:';
-$_MODULE['<{attributefeatureconnector}prestashop>configure_61eeabcb805473a2ca6d272bbd62b221'] = 'All Categories';
 $_MODULE['<{attributefeatureconnector}prestashop>configure_1241e00e932e38df2291d8fa776259c4'] = 'Filter';
 $_MODULE['<{attributefeatureconnector}prestashop>configure_5eadf7a1ad8d7a94cb99b0a438fcb3ca'] = 'Feature';
 $_MODULE['<{attributefeatureconnector}prestashop>configure_961f2247a2070bedff9f9cd8d64e2650'] = 'Feature Value';
