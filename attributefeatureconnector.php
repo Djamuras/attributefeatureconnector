@@ -9,8 +9,8 @@ class AttributeFeatureConnector extends Module
     {
         $this->name = 'attributefeatureconnector';
         $this->tab = 'administration';
-        $this->version = '1.5.5';
-        $this->author = 'seorun';
+        $this->version = '1.5.7';
+        $this->author = 'SEORUN.LT';
         $this->need_instance = 0;
         $this->ps_versions_compliancy = [
             'min' => '8.0.0',

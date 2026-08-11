@@ -294,6 +294,201 @@
     line-height: 1.5;
 }
 
+/* Attribute picker */
+.afc-attribute-picker {
+    border: 1px solid var(--afc-border);
+    border-radius: var(--afc-radius-sm);
+    background: var(--afc-bg);
+    padding: 12px;
+}
+.afc-picker-toolbar {
+    display: grid;
+    grid-template-columns: minmax(180px, 260px) 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+.afc-picker-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, .85fr);
+    gap: 12px;
+}
+.afc-picker-column {
+    background: var(--afc-white);
+    border: 1px solid var(--afc-border);
+    border-radius: var(--afc-radius-sm);
+    min-width: 0;
+    overflow: hidden;
+}
+.afc-picker-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--afc-border);
+    background: #f8fafc;
+}
+.afc-picker-head strong {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+.afc-picker-list {
+    height: 280px;
+    overflow: auto;
+    padding: 8px;
+}
+.afc-attribute-option {
+    width: 100%;
+    border: 1px solid var(--afc-border);
+    background: var(--afc-white);
+    border-radius: var(--afc-radius-xs);
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    text-align: left;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    color: var(--afc-text);
+    transition: var(--afc-transition);
+}
+.afc-attribute-option:hover {
+    border-color: var(--afc-accent);
+    background: var(--afc-accent-light);
+}
+.afc-attribute-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.afc-attribute-group,
+.afc-selected-text small {
+    color: var(--afc-text-muted);
+    font-size: 11.5px;
+}
+.afc-attribute-group {
+    background: #eef2f7;
+    border-radius: 999px;
+    padding: 2px 8px;
+    white-space: nowrap;
+}
+.afc-selected-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--afc-border);
+    border-radius: var(--afc-radius-xs);
+    background: var(--afc-accent-light);
+    margin-bottom: 6px;
+}
+.afc-selected-text {
+    min-width: 0;
+}
+.afc-selected-text strong,
+.afc-selected-text small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.afc-selected-text strong {
+    font-size: 13px;
+}
+.afc-selected-remove {
+    flex-shrink: 0;
+}
+.afc-selected-remove i {
+    margin: 0;
+}
+.afc-picker-empty {
+    display: none;
+    padding: 16px;
+    color: var(--afc-text-muted);
+    font-size: 13px;
+    text-align: center;
+}
+.afc-picker-inputs {
+    display: none;
+}
+
+/* Import / export */
+.afc-import-export-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 18px 20px 20px;
+}
+.afc-import-export-box {
+    border: 1px solid var(--afc-border);
+    border-radius: var(--afc-radius-sm);
+    background: var(--afc-bg);
+    padding: 16px;
+}
+.afc-import-export-box h4 {
+    margin: 0 0 8px;
+    font-family: var(--afc-font-head);
+    font-size: 15px;
+    font-weight: 600;
+}
+.afc-import-export-box p {
+    color: var(--afc-text-muted);
+    font-size: 13px;
+    line-height: 1.45;
+    margin-bottom: 12px;
+}
+.afc-import-preview {
+    border-top: 1px solid var(--afc-border);
+    padding: 16px 20px 20px;
+}
+.afc-import-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.afc-import-summary span {
+    background: var(--afc-bg);
+    border: 1px solid var(--afc-border);
+    border-radius: var(--afc-radius-xs);
+    padding: 6px 10px;
+    font-size: 12.5px;
+    color: var(--afc-text-muted);
+}
+.afc-import-summary strong {
+    color: var(--afc-text);
+    font-weight: 700;
+}
+.afc-import-report-table td {
+    font-size: 12.5px;
+}
+.afc-import-status {
+    text-transform: uppercase;
+}
+.afc-import-status-create,
+.afc-import-status-update {
+    background: var(--afc-blue);
+    color: #fff;
+}
+.afc-import-status-duplicate {
+    background: var(--afc-amber);
+    color: #fff;
+}
+.afc-import-status-skipped,
+.afc-import-status-feature_not_found,
+.afc-import-status-attribute_not_found {
+    background: var(--afc-red);
+    color: #fff;
+}
+.afc-import-confirm-form {
+    margin-top: 14px;
+    text-align: right;
+}
+
 /* Monospace inputs (cron URLs, tokens) */
 .bootstrap #cron_url,
 .bootstrap #cron_token,
@@ -676,6 +871,9 @@
 @media (max-width: 992px) {
     .afc-stats-grid { grid-template-columns: 1fr; }
     .afc-module-header { flex-direction: column; gap: 12px; text-align: center; }
+    .afc-picker-grid,
+    .afc-picker-toolbar,
+    .afc-import-export-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 768px) {
     .bootstrap .form-horizontal .control-label { text-align: left; margin-bottom: 6px; }

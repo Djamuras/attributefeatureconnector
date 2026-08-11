@@ -44,12 +44,50 @@
                 <div class="form-group">
                     <label class="control-label col-lg-3">{l s='Select Attributes' mod='attributefeatureconnector'}</label>
                     <div class="col-lg-9">
-                        <select name="selected_attributes[]" id="edit_attributes_select" class="form-control" multiple="multiple" style="height: 250px;">
-                            {foreach $attribute_options as $attribute}
-                                <option value="{$attribute.id}" {if in_array($attribute.id, $selected_attributes)}selected="selected"{/if}>{$attribute.name}</option>
-                            {/foreach}
-                        </select>
-                        <p class="help-block">{l s='Hold Ctrl/Cmd to select multiple attributes' mod='attributefeatureconnector'}</p>
+                        <div class="afc-attribute-picker" data-input-name="selected_attributes[]">
+                            <div class="afc-picker-toolbar">
+                                <select class="form-control afc-picker-group">
+                                    <option value="">{l s='All attribute groups' mod='attributefeatureconnector'}</option>
+                                </select>
+                                <input type="text" class="form-control afc-picker-search" placeholder="{l s='Search attributes...' mod='attributefeatureconnector'}">
+                            </div>
+                            <div class="afc-picker-grid">
+                                <div class="afc-picker-column">
+                                    <div class="afc-picker-head">
+                                        <strong>{l s='Available attributes' mod='attributefeatureconnector'}</strong>
+                                        <button type="button" class="btn btn-default btn-xs afc-picker-add-visible">
+                                            <i class="icon-plus"></i> {l s='Add visible' mod='attributefeatureconnector'}
+                                        </button>
+                                    </div>
+                                    <div class="afc-picker-list afc-picker-available">
+                                        {foreach $attribute_options as $attribute}
+                                            <button type="button"
+                                                    class="afc-attribute-option"
+                                                    data-id="{$attribute.id|intval}"
+                                                    data-label="{$attribute.attribute_name|escape:'html':'UTF-8'}"
+                                                    data-group="{$attribute.group_name|escape:'html':'UTF-8'}"
+                                                    data-selected="{if in_array($attribute.id, $selected_attributes)}1{else}0{/if}">
+                                                <span class="afc-attribute-name">{$attribute.attribute_name|escape:'html':'UTF-8'}</span>
+                                                <span class="afc-attribute-group">{$attribute.group_name|escape:'html':'UTF-8'}</span>
+                                            </button>
+                                        {/foreach}
+                                    </div>
+                                    <div class="afc-picker-empty afc-picker-empty-available">{l s='No attributes found' mod='attributefeatureconnector'}</div>
+                                </div>
+                                <div class="afc-picker-column afc-picker-column-selected">
+                                    <div class="afc-picker-head">
+                                        <strong>{l s='Selected attributes' mod='attributefeatureconnector'} <span class="badge afc-selected-count">0</span></strong>
+                                        <button type="button" class="btn btn-default btn-xs afc-picker-clear">
+                                            <i class="icon-trash"></i> {l s='Clear' mod='attributefeatureconnector'}
+                                        </button>
+                                    </div>
+                                    <div class="afc-picker-list afc-picker-selected"></div>
+                                    <div class="afc-picker-empty afc-picker-empty-selected">{l s='Nothing selected yet' mod='attributefeatureconnector'}</div>
+                                </div>
+                            </div>
+                            <div class="afc-picker-inputs"></div>
+                        </div>
+                        <p class="help-block">{l s='Filter by attribute group, add the values you need, then review the selected list on the right.' mod='attributefeatureconnector'}</p>
                     </div>
                 </div>
                 
@@ -80,12 +118,50 @@
                 <div class="form-group">
                     <label class="control-label col-lg-3">{l s='Select Attributes' mod='attributefeatureconnector'}</label>
                     <div class="col-lg-9">
-                        <select name="selected_attributes[]" id="attributes_select" class="form-control" multiple="multiple" style="height: 250px;">
-                            {foreach $attribute_options as $attribute}
-                                <option value="{$attribute.id}">{$attribute.name}</option>
-                            {/foreach}
-                        </select>
-                        <p class="help-block">{l s='Hold Ctrl/Cmd to select multiple attributes' mod='attributefeatureconnector'}</p>
+                        <div class="afc-attribute-picker" data-input-name="selected_attributes[]">
+                            <div class="afc-picker-toolbar">
+                                <select class="form-control afc-picker-group">
+                                    <option value="">{l s='All attribute groups' mod='attributefeatureconnector'}</option>
+                                </select>
+                                <input type="text" class="form-control afc-picker-search" placeholder="{l s='Search attributes...' mod='attributefeatureconnector'}">
+                            </div>
+                            <div class="afc-picker-grid">
+                                <div class="afc-picker-column">
+                                    <div class="afc-picker-head">
+                                        <strong>{l s='Available attributes' mod='attributefeatureconnector'}</strong>
+                                        <button type="button" class="btn btn-default btn-xs afc-picker-add-visible">
+                                            <i class="icon-plus"></i> {l s='Add visible' mod='attributefeatureconnector'}
+                                        </button>
+                                    </div>
+                                    <div class="afc-picker-list afc-picker-available">
+                                        {foreach $attribute_options as $attribute}
+                                            <button type="button"
+                                                    class="afc-attribute-option"
+                                                    data-id="{$attribute.id|intval}"
+                                                    data-label="{$attribute.attribute_name|escape:'html':'UTF-8'}"
+                                                    data-group="{$attribute.group_name|escape:'html':'UTF-8'}"
+                                                    data-selected="0">
+                                                <span class="afc-attribute-name">{$attribute.attribute_name|escape:'html':'UTF-8'}</span>
+                                                <span class="afc-attribute-group">{$attribute.group_name|escape:'html':'UTF-8'}</span>
+                                            </button>
+                                        {/foreach}
+                                    </div>
+                                    <div class="afc-picker-empty afc-picker-empty-available">{l s='No attributes found' mod='attributefeatureconnector'}</div>
+                                </div>
+                                <div class="afc-picker-column afc-picker-column-selected">
+                                    <div class="afc-picker-head">
+                                        <strong>{l s='Selected attributes' mod='attributefeatureconnector'} <span class="badge afc-selected-count">0</span></strong>
+                                        <button type="button" class="btn btn-default btn-xs afc-picker-clear">
+                                            <i class="icon-trash"></i> {l s='Clear' mod='attributefeatureconnector'}
+                                        </button>
+                                    </div>
+                                    <div class="afc-picker-list afc-picker-selected"></div>
+                                    <div class="afc-picker-empty afc-picker-empty-selected">{l s='Nothing selected yet' mod='attributefeatureconnector'}</div>
+                                </div>
+                            </div>
+                            <div class="afc-picker-inputs"></div>
+                        </div>
+                        <p class="help-block">{l s='Filter by attribute group, add the values you need, then review the selected list on the right.' mod='attributefeatureconnector'}</p>
                     </div>
                 </div>
                 
@@ -95,6 +171,88 @@
                     </button>
                 </div>
             </form>
+        {/if}
+    </div>
+
+    <div class="panel">
+        <div class="panel-heading">
+            <i class="icon-exchange"></i> {l s='Import / Export Attribute Mappings' mod='attributefeatureconnector'}
+        </div>
+
+        <div class="alert alert-info">
+            {l s='Export your attribute mappings before reinstalling the module, then import them back after installation.' mod='attributefeatureconnector'}
+            <p class="help-block">{l s='Import works by feature, feature value, attribute group, and attribute names, so it does not depend on old database IDs.' mod='attributefeatureconnector'}</p>
+        </div>
+
+        <div class="afc-import-export-grid">
+            <div class="afc-import-export-box">
+                <h4>{l s='Export mappings' mod='attributefeatureconnector'}</h4>
+                <p>{l s='Download all current Attribute Mapping rules as a JSON file.' mod='attributefeatureconnector'}</p>
+                <a href="{$export_url}" class="btn btn-primary">
+                    <i class="icon-download"></i> {l s='Export JSON' mod='attributefeatureconnector'}
+                </a>
+            </div>
+
+            <div class="afc-import-export-box">
+                <h4>{l s='Import mappings' mod='attributefeatureconnector'}</h4>
+                <p>{l s='Upload an exported JSON file to validate it first. Existing mappings are kept and missing attribute links are added only after confirmation.' mod='attributefeatureconnector'}</p>
+                <form action="{$smarty.server.REQUEST_URI}" method="post" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <input type="file" name="mapping_import_file" class="form-control" accept="application/json,.json" required>
+                    </div>
+                    <button type="submit" name="preview_import_mappings" class="btn btn-default">
+                        <i class="icon-search"></i> {l s='Preview Import' mod='attributefeatureconnector'}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {if !empty($import_preview)}
+            <div class="afc-import-preview">
+                <div class="afc-import-summary">
+                    <span><strong>{$import_preview.summary.create|intval}</strong> {l s='new mappings' mod='attributefeatureconnector'}</span>
+                    <span><strong>{$import_preview.summary.update|intval}</strong> {l s='existing mappings' mod='attributefeatureconnector'}</span>
+                    <span><strong>{$import_preview.summary.link|intval}</strong> {l s='attributes to link' mod='attributefeatureconnector'}</span>
+                    <span><strong>{$import_preview.summary.duplicate|intval}</strong> {l s='duplicates' mod='attributefeatureconnector'}</span>
+                    <span><strong>{$import_preview.summary.skipped|intval}</strong> {l s='skipped' mod='attributefeatureconnector'}</span>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table afc-import-report-table">
+                        <thead>
+                            <tr>
+                                <th>{l s='Feature' mod='attributefeatureconnector'}</th>
+                                <th>{l s='Feature Value' mod='attributefeatureconnector'}</th>
+                                <th>{l s='Attribute Group' mod='attributefeatureconnector'}</th>
+                                <th>{l s='Attribute' mod='attributefeatureconnector'}</th>
+                                <th>{l s='Status' mod='attributefeatureconnector'}</th>
+                                <th>{l s='Message' mod='attributefeatureconnector'}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {foreach from=$import_preview.rows item=row}
+                                <tr>
+                                    <td>{$row.feature|escape:'html':'UTF-8'}</td>
+                                    <td>{$row.feature_value|escape:'html':'UTF-8'}</td>
+                                    <td>{$row.group|escape:'html':'UTF-8'}</td>
+                                    <td>{$row.attribute|escape:'html':'UTF-8'}</td>
+                                    <td><span class="label label-default afc-import-status afc-import-status-{$row.status|escape:'html':'UTF-8'}">{$row.status|escape:'html':'UTF-8'}</span></td>
+                                    <td>{$row.message|escape:'html':'UTF-8'}</td>
+                                </tr>
+                            {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+
+                {if $import_preview.summary.link > 0}
+                    <form action="{$smarty.server.REQUEST_URI}" method="post" class="afc-import-confirm-form">
+                        <input type="hidden" name="import_payload" value="{$import_payload|escape:'html':'UTF-8'}">
+                        <button type="submit" name="confirm_import_mappings" class="btn btn-primary">
+                            <i class="icon-check"></i> {l s='Confirm Import' mod='attributefeatureconnector'}
+                        </button>
+                    </form>
+                {/if}
+            </div>
         {/if}
     </div>
     
