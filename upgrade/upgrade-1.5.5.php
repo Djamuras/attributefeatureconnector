@@ -5,14 +5,9 @@ if (!defined('_PS_VERSION_')) {
 
 function upgrade_module_1_5_5($module)
 {
-    if (Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_DISPLAY') === false) {
-        Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_DISPLAY', 1);
-    }
+    Configuration::deleteByName('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_DISPLAY');
+    Configuration::deleteByName('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_TITLE');
 
-    if (!Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_TITLE')) {
-        Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_TITLE', 'Product highlights');
-    }
-
-    return $module->registerHook('displayHeader')
-        && $module->registerHook('displayProductAdditionalInfo');
+    return $module->unregisterHook('displayHeader')
+        && $module->unregisterHook('displayProductAdditionalInfo');
 }

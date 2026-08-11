@@ -37,13 +37,9 @@ class AttributeFeatureConnector extends Module
         Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_CRON_TOKEN', $token);
         Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_BATCH_SIZE', 50);
         Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_REALTIME', 0);
-        Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_DISPLAY', 1);
-        Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_TITLE', 'Product highlights');
 
         return parent::install() &&
             $this->registerHook('actionAdminControllerSetMedia') &&
-            $this->registerHook('displayHeader') &&
-            $this->registerHook('displayProductAdditionalInfo') &&
             $this->registerHook('actionObjectProductAddAfter') &&
             $this->registerHook('actionObjectProductUpdateAfter') &&
             $this->registerHook('actionProductAttributeUpdate') &&
@@ -61,8 +57,6 @@ class AttributeFeatureConnector extends Module
         Configuration::deleteByName('ATTRIBUTE_FEATURE_CONNECTOR_CRON_TOKEN');
         Configuration::deleteByName('ATTRIBUTE_FEATURE_CONNECTOR_BATCH_SIZE');
         Configuration::deleteByName('ATTRIBUTE_FEATURE_CONNECTOR_REALTIME');
-        Configuration::deleteByName('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_DISPLAY');
-        Configuration::deleteByName('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_TITLE');
 
         return parent::uninstall() &&
             $this->uninstallTab('AdminAttributeFeatureConnector') &&
@@ -115,49 +109,6 @@ class AttributeFeatureConnector extends Module
     }
 
     // ===== Real-time hooks =====
-
-    public function hookDisplayHeader()
-    {
-        if (!Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_DISPLAY')) {
-            return;
-        }
-
-        if (Tools::getValue('controller') === 'product') {
-            $this->context->controller->addCSS($this->_path . 'views/css/front.css');
-        }
-    }
-
-    public function hookDisplayProductAdditionalInfo($params)
-    {
-        if (!Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_DISPLAY')) {
-            return '';
-        }
-
-        $id_product = 0;
-        if (isset($params['product']['id_product'])) {
-            $id_product = (int)$params['product']['id_product'];
-        } elseif (isset($params['product']['id'])) {
-            $id_product = (int)$params['product']['id'];
-        } else {
-            $id_product = (int)Tools::getValue('id_product');
-        }
-
-        if (!$id_product) {
-            return '';
-        }
-
-        $features = self::getMappedFeaturesForProduct($id_product, (int)$this->context->language->id);
-        if (!$features) {
-            return '';
-        }
-
-        $this->context->smarty->assign([
-            'afc_title' => Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_TITLE') ?: $this->l('Product highlights'),
-            'afc_features' => $features,
-        ]);
-
-        return $this->display(__FILE__, 'product-mapped-features.tpl');
-    }
 
     public function hookActionObjectProductAddAfter($params)
     {
@@ -415,33 +366,5 @@ class AttributeFeatureConnector extends Module
             'SELECT DISTINCT id_feature_value FROM `' . _DB_PREFIX_ . 'category_feature_mapping`'
         );
         return $result ? array_column($result, 'id_feature_value') : [];
-    }
-
-    public static function getMappedFeaturesForProduct($id_product, $id_lang)
-    {
-        $mapped_values = array_unique(array_map('intval', array_merge(
-            self::getMappedFeatureValues(),
-            self::getCategoryMappedFeatureValues()
-        )));
-
-        if (!$id_product || !$mapped_values) {
-            return [];
-        }
-
-        $value_list = implode(',', $mapped_values);
-
-        $result = Db::getInstance()->executeS(
-            'SELECT DISTINCT fp.id_feature, fp.id_feature_value, fl.name AS feature_name, fvl.value AS feature_value
-             FROM `' . _DB_PREFIX_ . 'feature_product` fp
-             INNER JOIN `' . _DB_PREFIX_ . 'feature_lang` fl
-                ON fp.id_feature = fl.id_feature AND fl.id_lang = ' . (int)$id_lang . '
-             INNER JOIN `' . _DB_PREFIX_ . 'feature_value_lang` fvl
-                ON fp.id_feature_value = fvl.id_feature_value AND fvl.id_lang = ' . (int)$id_lang . '
-             WHERE fp.id_product = ' . (int)$id_product . '
-               AND fp.id_feature_value IN (' . $value_list . ')
-             ORDER BY fl.name ASC, fvl.value ASC'
-        );
-
-        return $result ?: [];
     }
 }

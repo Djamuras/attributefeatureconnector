@@ -162,8 +162,6 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         
         // Get batch processing configuration
         $batch_size = Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_BATCH_SIZE', 50);
-        $front_display_enabled = (bool)Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_DISPLAY');
-        $front_display_title = Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_TITLE') ?: $this->l('Product highlights');
         
         // Documentation content
         $documentation = $this->getDocumentationContent();
@@ -192,10 +190,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             'cron_url' => $cron_url,
             'batch_size' => $batch_size,
             'realtime_enabled' => (bool)Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_REALTIME'),
-            'front_display_enabled' => $front_display_enabled,
-            'front_display_title' => $front_display_title,
             'update_realtime_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector'),
-            'update_front_display_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector'),
             'documentation' => $documentation,
             'categories' => $categories,
             'selected_category' => $selected_category,
@@ -300,15 +295,6 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             $this->confirmations[] = $realtime
                 ? $this->l('Real-time processing enabled')
                 : $this->l('Real-time processing disabled');
-        } elseif (Tools::isSubmit('update_front_display')) {
-            $front_display = (int)(bool)Tools::getValue('front_display_enabled');
-            $front_title = trim((string)Tools::getValue('front_display_title'));
-            if ($front_title === '') {
-                $front_title = 'Product highlights';
-            }
-            Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_DISPLAY', $front_display);
-            Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_FRONT_TITLE', $front_title);
-            $this->confirmations[] = $this->l('Front-office display settings updated');
         } elseif (Tools::isSubmit('submitNewCategory')) {
             $name = Tools::getValue('category_name');
             $description = Tools::getValue('category_description');
