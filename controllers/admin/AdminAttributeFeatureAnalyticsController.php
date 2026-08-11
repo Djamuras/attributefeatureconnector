@@ -34,7 +34,6 @@ class AdminAttributeFeatureAnalyticsController extends ModuleAdminController
         $current_batch_size = Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_BATCH_SIZE', 50);
         $has_chart_data = !empty($logs);
         $performance_graph_data = $this->preparePerformanceGraphData($logs);
-        $categories = $this->getMappingCategories();
         $unmapped_attributes = $this->getUnmappedAttributes();
         $total_attributes = $this->getTotalAttributesCount();
 
@@ -43,7 +42,6 @@ class AdminAttributeFeatureAnalyticsController extends ModuleAdminController
             'metrics' => $metrics,
             'has_chart_data' => $has_chart_data,
             'performance_graph_data' => json_encode($performance_graph_data),
-            'categories' => $categories,
             'optimal_batch_size' => $optimal_batch_size,
             'current_batch_size' => $current_batch_size,
             'unmapped_attributes' => $unmapped_attributes,
@@ -203,17 +201,6 @@ class AdminAttributeFeatureAnalyticsController extends ModuleAdminController
         return (int)Db::getInstance()->getValue(
             'SELECT COUNT(*) FROM `' . _DB_PREFIX_ . 'attribute`'
         );
-    }
-
-    protected function getMappingCategories()
-    {
-        $query = new DbQuery();
-        $query->select('*')
-            ->from('attribute_feature_mapping_category')
-            ->orderBy('name ASC');
-
-        $result = Db::getInstance()->executeS($query);
-        return $result ? $result : [];
     }
 
     public function postProcess()

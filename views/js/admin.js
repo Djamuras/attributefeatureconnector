@@ -36,11 +36,6 @@ $(document).ready(function() {
         $('#documentationModal .nav-tabs a:first').tab('show');
     });
     
-    // Auto-submit category filter form on change
-    $('select[name="category_filter"]').on('change', function() {
-        $('#filter_form').submit();
-    });
-    
     // Removed: Initialize tooltips for suggestion items
     // $('.suggestion-item [data-toggle="tooltip"]').tooltip();
     
@@ -61,10 +56,6 @@ $(document).ready(function() {
     // Removed: Ignore suggestion confirmation
     // $('.ignore-suggestion').on('click', function(e) { ... });
     
-    // Auto-filter submit on category filter change
-    $('#category_filter').on('change', function() {
-        $('#filter_form').submit();
-    });
 });
 
 // Function to copy text to clipboard

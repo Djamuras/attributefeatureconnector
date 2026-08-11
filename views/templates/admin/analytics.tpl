@@ -99,9 +99,6 @@
                             <li>
                                 <i class="icon-angle-right"></i> {l s='For large catalogs (10,000+ products), consider running operations in smaller batches.' mod='attributefeatureconnector'}
                             </li>
-                            <li>
-                                <i class="icon-angle-right"></i> {l s='Organize mappings into categories for better management and improved performance.' mod='attributefeatureconnector'}
-                            </li>
                         </ul>
                     </div>
                 </div>

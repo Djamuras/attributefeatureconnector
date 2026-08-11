@@ -53,17 +53,6 @@
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label class="control-label col-lg-3">{l s='Category' mod='attributefeatureconnector'}</label>
-                    <div class="col-lg-9">
-                        <select name="id_category" class="form-control">
-                            {foreach $categories as $category}
-                                <option value="{$category.id_category}" {if isset($mapping_to_edit.id_category) && $mapping_to_edit.id_category == $category.id_category}selected="selected"{/if}>{$category.name}</option>
-                            {/foreach}
-                        </select>
-                    </div>
-                </div>
-                
                 <div class="panel-footer">
                     <a href="{$cancel_url}" class="btn btn-default">
                         <i class="process-icon-cancel"></i> {l s='Cancel' mod='attributefeatureconnector'}
@@ -97,17 +86,6 @@
                             {/foreach}
                         </select>
                         <p class="help-block">{l s='Hold Ctrl/Cmd to select multiple attributes' mod='attributefeatureconnector'}</p>
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="control-label col-lg-3">{l s='Category' mod='attributefeatureconnector'}</label>
-                    <div class="col-lg-9">
-                        <select name="id_category" class="form-control">
-                            {foreach $categories as $category}
-                                <option value="{$category.id_category}">{$category.name}</option>
-                            {/foreach}
-                        </select>
                     </div>
                 </div>
                 
@@ -255,35 +233,6 @@
         <div class="panel">
             <div class="panel-heading">
                 <i class="icon-list"></i> {l s='Current Mappings' mod='attributefeatureconnector'}
-                <span class="panel-heading-action">
-                    <a href="{$manage_categories_url}" class="btn btn-default">
-                        <i class="icon-folder-open"></i> {l s='Manage Categories' mod='attributefeatureconnector'}
-                    </a>
-                </span>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-6">
-                    <form id="filter_form" class="form-inline" method="get" action="{$smarty.server.REQUEST_URI|regex_replace:'/(&page=\d+)?(&category_filter=\d+)?$/':''}">
-                        <input type="hidden" name="controller" value="AdminAttributeFeatureConnector">
-                        <div class="form-group">
-                            <label class="control-label">{l s='Filter by Category:' mod='attributefeatureconnector'}</label>
-                            <div class="input-group">
-                                <select name="category_filter" class="form-control">
-                                    <option value="0"{if $selected_category == 0} selected="selected"{/if}>{l s='All Categories' mod='attributefeatureconnector'}</option>
-                                    {foreach $categories as $category}
-                                        <option value="{$category.id_category}"{if $selected_category == $category.id_category} selected="selected"{/if}>{$category.name} ({$category.mappings_count})</option>
-                                    {/foreach}
-                                </select>
-                                <span class="input-group-btn">
-                                    <button type="submit" class="btn btn-default">
-                                        <i class="icon-filter"></i> {l s='Filter' mod='attributefeatureconnector'}
-                                    </button>
-                                </span>
-                            </div>
-                        </div>
-                    </form>
-                </div>
             </div>
             
             <div class="table-responsive">
@@ -292,7 +241,6 @@
                         <tr>
                             <th>{l s='Feature' mod='attributefeatureconnector'}</th>
                             <th>{l s='Feature Value' mod='attributefeatureconnector'}</th>
-                            <th>{l s='Category' mod='attributefeatureconnector'}</th>
                             <th>{l s='Linked Attributes' mod='attributefeatureconnector'}</th>
                             <th>{l s='Actions' mod='attributefeatureconnector'}</th>
                         </tr>
@@ -302,7 +250,6 @@
                             <tr>
                                 <td>{$mapping.feature_name}</td>
                                 <td>{$mapping.value}</td>
-                                <td><span class="badge">{$mapping.category_name}</span></td>
                                 <td>{$mapping.attributes}</td>
                                 <td>
                                     <div class="btn-group">
@@ -397,9 +344,6 @@
                             <a href="#doc-category-mapping" aria-controls="category-mapping" role="tab" data-toggle="tab">{$documentation.categoryMapping.title}</a>
                         </li>
                         <li role="presentation">
-                            <a href="#doc-categories" aria-controls="categories" role="tab" data-toggle="tab">{$documentation.categories.title}</a>
-                        </li>
-                        <li role="presentation">
                             <a href="#doc-preview" aria-controls="preview" role="tab" data-toggle="tab">{$documentation.preview.title}</a>
                         </li>
                         <li role="presentation">
@@ -455,20 +399,6 @@
                                             <li>{$step}</li>
                                         {/foreach}
                                     </ol>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div role="tabpanel" class="tab-pane" id="doc-categories">
-                            <div class="panel">
-                                <div class="panel-body">
-                                    <p>{$documentation.categories.content}</p>
-                                    <h4>{l s='Tips:' mod='attributefeatureconnector'}</h4>
-                                    <ul>
-                                        {foreach from=$documentation.categories.tips item=tip}
-                                            <li>{$tip}</li>
-                                        {/foreach}
-                                    </ul>
                                 </div>
                             </div>
                         </div>
