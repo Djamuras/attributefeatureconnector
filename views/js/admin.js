@@ -61,13 +61,6 @@ $(document).ready(function() {
     // Removed: Ignore suggestion confirmation
     // $('.ignore-suggestion').on('click', function(e) { ... });
     
-    // Conflict resolution confirmation
-    $('.resolve-conflict').on('click', function(e) {
-        if (!confirm('This will remove the attribute from other conflicting mappings. Continue?')) {
-            e.preventDefault();
-        }
-    });
-    
     // Auto-filter submit on category filter change
     $('#category_filter').on('change', function() {
         $('#filter_form').submit();

@@ -1,15 +1,22 @@
 <div class="bootstrap">
+
+    <div class="afc-module-header">
+        <div class="afc-module-header-title">
+            <i class="icon-tags"></i> {l s='Category-Feature Mapping' mod='attributefeatureconnector'}
+        </div>
+        <div class="afc-module-header-nav">
+            <a href="{$attribute_connector_url}" class="btn btn-sm">
+                <i class="icon-exchange"></i> {l s='Attribute Mapping' mod='attributefeatureconnector'}
+            </a>
+            <a href="{$analytics_url}" class="btn btn-sm">
+                <i class="icon-bar-chart"></i> {l s='Analytics' mod='attributefeatureconnector'}
+            </a>
+        </div>
+    </div>
+
     <div class="panel">
         <div class="panel-heading">
             <i class="icon-tags"></i> {l s='Category-Feature Mapping' mod='attributefeatureconnector'}
-            <div class="panel-heading-action">
-                <a href="{$attribute_connector_url}" class="btn btn-default">
-                    <i class="icon-exchange"></i> {l s='Attribute Mapping' mod='attributefeatureconnector'}
-                </a>
-                <a href="{$analytics_url}" class="btn btn-default">
-                    <i class="icon-bar-chart"></i> {l s='Analytics' mod='attributefeatureconnector'}
-                </a>
-            </div>
         </div>
         
         <div class="alert alert-info">
@@ -46,7 +53,23 @@
                         </select>
                     </div>
                 </div>
-                
+
+                <div class="form-group">
+                    <label class="control-label col-lg-3">{l s='Include Subcategories' mod='attributefeatureconnector'}</label>
+                    <div class="col-lg-9">
+                        <label class="afc-toggle-wrap">
+                            <div class="afc-toggle">
+                                <input type="checkbox" name="include_subcategories" value="1" {if $mapping_to_edit.include_subcategories}checked="checked"{/if}>
+                                <span class="afc-toggle-track"></span>
+                            </div>
+                            <div class="afc-toggle-label">
+                                <strong>{l s='Include Subcategories' mod='attributefeatureconnector'}</strong>
+                                <span>{l s='Also apply this feature to products in all subcategories' mod='attributefeatureconnector'}</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="panel-footer">
                     <a href="{$cancel_url}" class="btn btn-default">
                         <i class="process-icon-cancel"></i> {l s='Cancel' mod='attributefeatureconnector'}
@@ -79,10 +102,26 @@
                                 <option value="{$category.id}">{$category.name}</option>
                             {/foreach}
                         </select>
-                        <p class="help-block">{l s='All products in this category will receive the selected feature value.' mod='attributefeatureconnector'}</p>
+                        <p class="help-block">{l s='Products in this category will receive the selected feature value.' mod='attributefeatureconnector'}</p>
                     </div>
                 </div>
-                
+
+                <div class="form-group">
+                    <label class="control-label col-lg-3">{l s='Include Subcategories' mod='attributefeatureconnector'}</label>
+                    <div class="col-lg-9">
+                        <label class="afc-toggle-wrap">
+                            <div class="afc-toggle">
+                                <input type="checkbox" name="include_subcategories" value="1">
+                                <span class="afc-toggle-track"></span>
+                            </div>
+                            <div class="afc-toggle-label">
+                                <strong>{l s='Include Subcategories' mod='attributefeatureconnector'}</strong>
+                                <span>{l s='Also apply to products in all subcategories' mod='attributefeatureconnector'}</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="panel-footer">
                     <button type="submit" name="submitCategoryMapping" class="btn btn-default pull-right">
                         <i class="process-icon-save"></i> {l s='Save Mapping' mod='attributefeatureconnector'}
@@ -105,6 +144,7 @@
                             <th>{l s='Feature' mod='attributefeatureconnector'}</th>
                             <th>{l s='Feature Value' mod='attributefeatureconnector'}</th>
                             <th>{l s='Category' mod='attributefeatureconnector'}</th>
+                            <th>{l s='Subcategories' mod='attributefeatureconnector'}</th>
                             <th>{l s='Actions' mod='attributefeatureconnector'}</th>
                         </tr>
                     </thead>
@@ -114,6 +154,15 @@
                                 <td>{$mapping.feature_name}</td>
                                 <td>{$mapping.value}</td>
                                 <td>{$mapping.category_name}</td>
+                                <td>
+                                    {if $mapping.include_subcategories}
+                                        <span class="label label-info" title="{l s='Includes all subcategories' mod='attributefeatureconnector'}">
+                                            <i class="icon-sitemap"></i> {l s='Yes' mod='attributefeatureconnector'}
+                                        </span>
+                                    {else}
+                                        <span class="label label-default">{l s='No' mod='attributefeatureconnector'}</span>
+                                    {/if}
+                                </td>
                                 <td>
                                     <div class="btn-group">
                                         <a href="{$edit_url}&edit_mapping={$mapping.id_mapping}" class="btn btn-default btn-action" title="{l s='Edit' mod='attributefeatureconnector'}">

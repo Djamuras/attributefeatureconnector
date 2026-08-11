@@ -46,11 +46,12 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'attribute_feature_perfo
     INDEX `idx_date` (`date_add`)
 ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4;';
 
-// Create category feature mapping table
+// Create category feature mapping table (with subcategory cascade support)
 $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'category_feature_mapping` (
     `id_mapping` int(10) unsigned NOT NULL AUTO_INCREMENT,
     `id_feature_value` int(10) unsigned NOT NULL,
     `id_category` int(10) unsigned NOT NULL,
+    `include_subcategories` tinyint(1) unsigned NOT NULL DEFAULT 0,
     `date_add` datetime NOT NULL,
     `date_upd` datetime NOT NULL,
     PRIMARY KEY (`id_mapping`),
@@ -60,8 +61,8 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'category_feature_mappin
 ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4;';
 
 // Insert default category
-$sql[] = "INSERT INTO `" . _DB_PREFIX_ . "attribute_feature_mapping_category` 
-    (`name`, `description`, `date_add`, `date_upd`) 
+$sql[] = "INSERT INTO `" . _DB_PREFIX_ . "attribute_feature_mapping_category`
+    (`name`, `description`, `date_add`, `date_upd`)
     VALUES ('Default', 'Default category for mappings', NOW(), NOW())";
 
 foreach ($sql as $query) {

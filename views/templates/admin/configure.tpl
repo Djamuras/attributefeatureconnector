@@ -1,17 +1,24 @@
 <div class="bootstrap">
+
+    <div class="afc-module-header">
+        <div class="afc-module-header-title">
+            <i class="icon-cogs"></i> {l s='Attribute-Feature Connector' mod='attributefeatureconnector'}
+        </div>
+        <div class="afc-module-header-nav">
+            <a href="{$category_mapping_url}" class="btn btn-sm">
+                <i class="icon-tags"></i> {l s='Category Mapping' mod='attributefeatureconnector'}
+            </a>
+            <a href="{$analytics_url}" class="btn btn-sm">
+                <i class="icon-bar-chart"></i> {l s='Analytics' mod='attributefeatureconnector'}
+            </a>
+        </div>
+    </div>
+
     <div class="panel">
         <div class="panel-heading">
-            <i class="icon-cogs"></i> {l s='Attribute-Feature Connector' mod='attributefeatureconnector'}
-            <span class="panel-heading-action">
-                <a href="{$category_mapping_url}" class="btn btn-default">
-                    <i class="icon-tags"></i> {l s='Category Mapping' mod='attributefeatureconnector'}
-                </a>
-                <a href="{$analytics_url}" class="btn btn-default">
-                    <i class="icon-bar-chart"></i> {l s='Analytics Dashboard' mod='attributefeatureconnector'}
-                </a>
-            </span>
+            <i class="icon-cogs"></i> {l s='Attribute Mapping' mod='attributefeatureconnector'}
         </div>
-        
+
         <div class="alert alert-info">
             {l s='This module allows you to automatically assign features to products based on their attributes or categories.' mod='attributefeatureconnector'}
             <p class="help-block">
@@ -142,6 +149,38 @@
         </form>
     </div>
     
+    <!-- Real-Time Processing Panel -->
+    <div class="panel">
+        <div class="panel-heading">
+            <i class="icon-bolt"></i> {l s='Real-Time Processing' mod='attributefeatureconnector'}
+        </div>
+
+        <div class="alert alert-info">
+            {l s='When enabled, features are automatically assigned to products as soon as they are saved or their attributes/category change — no cron or manual generation needed.' mod='attributefeatureconnector'}
+            <p class="help-block">{l s='Disable this on large catalogs where every product save triggers heavy processing. Use the CRON job instead.' mod='attributefeatureconnector'}</p>
+        </div>
+
+        <form action="{$update_realtime_url}" method="post">
+            <div class="panel-body">
+                <label class="afc-toggle-wrap">
+                    <div class="afc-toggle">
+                        <input type="checkbox" name="realtime_enabled" value="1" {if $realtime_enabled}checked="checked"{/if}>
+                        <span class="afc-toggle-track"></span>
+                    </div>
+                    <div class="afc-toggle-label">
+                        <strong>{l s='Enable Real-Time Processing' mod='attributefeatureconnector'}</strong>
+                        <span>{l s='Automatically apply mappings when products are saved or their attributes/category change.' mod='attributefeatureconnector'}</span>
+                    </div>
+                </label>
+            </div>
+            <div class="panel-footer">
+                <button type="submit" name="update_realtime" class="btn btn-primary pull-right">
+                    <i class="icon-save"></i> {l s='Save' mod='attributefeatureconnector'}
+                </button>
+            </div>
+        </form>
+    </div>
+
     <!-- CRON Job Panel -->
     <div class="panel">
         <div class="panel-heading">

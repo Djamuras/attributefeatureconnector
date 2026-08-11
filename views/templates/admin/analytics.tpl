@@ -1,44 +1,50 @@
 <div class="bootstrap">
-    <div class="panel">
-        <div class="panel-heading">
+
+    <div class="afc-module-header">
+        <div class="afc-module-header-title">
             <i class="icon-bar-chart"></i> {l s='Attribute-Feature Analytics' mod='attributefeatureconnector'}
-            <span class="panel-heading-action">
-                <a href="{$connector_url}" class="btn btn-default">
-                    <i class="icon-cogs"></i> {l s='Back to Connector' mod='attributefeatureconnector'}
-                </a>
-            </span>
         </div>
-        
-        <div class="row">
+        <div class="afc-module-header-nav">
+            <a href="{$connector_url}" class="btn btn-sm">
+                <i class="icon-cogs"></i> {l s='Connector' mod='attributefeatureconnector'}
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
             <div class="col-md-3">
                 <div class="panel">
                     <div class="panel-heading">
                         <i class="icon-dashboard"></i> {l s='Overview' mod='attributefeatureconnector'}
                     </div>
-                    <div class="panel-body">
-                        <div class="stat-item">
-                            <span class="stat-label">{l s='Total Operations' mod='attributefeatureconnector'}</span>
-                            <span class="stat-value">{$metrics.total_operations}</span>
+                    <div class="afc-stats-grid" style="grid-template-columns: 1fr;">
+                        <div class="afc-stat-card">
+                            <span class="afc-stat-label">{l s='Total Operations' mod='attributefeatureconnector'}</span>
+                            <span class="afc-stat-value">{$metrics.total_operations}</span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">{l s='Products Processed' mod='attributefeatureconnector'}</span>
-                            <span class="stat-value">{$metrics.total_products_processed}</span>
+                        <div class="afc-stat-card">
+                            <span class="afc-stat-label">{l s='Products Processed' mod='attributefeatureconnector'}</span>
+                            <span class="afc-stat-value">{$metrics.total_products_processed}</span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">{l s='Products Updated' mod='attributefeatureconnector'}</span>
-                            <span class="stat-value">{$metrics.total_products_updated}</span>
+                        <div class="afc-stat-card">
+                            <span class="afc-stat-label">{l s='Products Updated' mod='attributefeatureconnector'}</span>
+                            <span class="afc-stat-value">{$metrics.total_products_updated}</span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">{l s='Avg Execution Time' mod='attributefeatureconnector'}</span>
-                            <span class="stat-value">{$metrics.avg_execution_time} s</span>
+                        <div class="afc-stat-card">
+                            <span class="afc-stat-label">{l s='Avg Execution Time' mod='attributefeatureconnector'}</span>
+                            <span class="afc-stat-value">{$metrics.avg_execution_time}<span class="afc-stat-sub">seconds</span></span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">{l s='Max Execution Time' mod='attributefeatureconnector'}</span>
-                            <span class="stat-value">{$metrics.max_execution_time} s</span>
+                        <div class="afc-stat-card">
+                            <span class="afc-stat-label">{l s='Max Execution Time' mod='attributefeatureconnector'}</span>
+                            <span class="afc-stat-value">{$metrics.max_execution_time}<span class="afc-stat-sub">seconds</span></span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">{l s='Avg Memory Usage' mod='attributefeatureconnector'}</span>
-                            <span class="stat-value">{$metrics.avg_memory_usage} MB</span>
+                        <div class="afc-stat-card">
+                            <span class="afc-stat-label">{l s='Avg Memory Usage' mod='attributefeatureconnector'}</span>
+                            <span class="afc-stat-value">{$metrics.avg_memory_usage}<span class="afc-stat-sub">MB</span></span>
+                        </div>
+                        <div class="afc-stat-card">
+                            <span class="afc-stat-label">{l s='Unmapped Attributes' mod='attributefeatureconnector'}</span>
+                            <span class="afc-stat-value {if $unmapped_count > 0}text-danger{else}text-success{/if}">{$unmapped_count}<span class="afc-stat-sub">of {$total_attributes} total</span></span>
                         </div>
                     </div>
                 </div>
@@ -101,64 +107,61 @@
                 </div>
             </div>
             
-            <div class="col-md-6">
-                <div class="panel">
-                    <div class="panel-heading">
-                        <i class="icon-exclamation-triangle"></i> {l s='Mapping Conflicts' mod='attributefeatureconnector'}
-                    </div>
-                    <div class="panel-body">
-                        {if !empty($conflicts)}
-                            <div class="alert alert-warning">
-                                <p>{l s='The following conflicts were detected in your mappings:' mod='attributefeatureconnector'}</p>
-                            </div>
-                            
-                            <div class="table-responsive">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>{l s='Attribute' mod='attributefeatureconnector'}</th>
-                                            <th>{l s='Feature' mod='attributefeatureconnector'}</th>
-                                            <th>{l s='Conflicts' mod='attributefeatureconnector'}</th>
-                                            <th>{l s='Actions' mod='attributefeatureconnector'}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {foreach from=$conflicts item=conflict}
-                                            <tr>
-                                                <td>{$conflict.attribute_name}</td>
-                                                <td>{$conflict.feature_name}</td>
-                                                <td>
-                                                    <ul class="conflict-values">
-                                                        {foreach from=$conflict.mappings item=mapping}
-                                                            <li>{$mapping.feature_value}</li>
-                                                        {/foreach}
-                                                    </ul>
-                                                </td>
-                                                <td>
-                                                    <div class="btn-group-vertical">
-                                                        {foreach from=$conflict.mappings item=mapping}
-                                                            <a href="{$resolve_conflict_url}&id_attribute={$conflict.id_attribute}&id_feature={$conflict.id_feature}&keep_mapping_id={$mapping.id_mapping}" class="btn btn-xs btn-default" onclick="return confirm('{l s='This will remove the attribute from other conflicting mappings. Continue?' mod='attributefeatureconnector'}');">
-                                                                {l s='Keep' mod='attributefeatureconnector'} "{$mapping.feature_value}"
-                                                            </a>
-                                                        {/foreach}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        {/foreach}
-                                    </tbody>
-                                </table>
-                            </div>
-                        {else}
-                            <div class="alert alert-success">
-                                <i class="icon-check"></i> {l s='No mapping conflicts detected.' mod='attributefeatureconnector'}
-                            </div>
-                        {/if}
-                    </div>
-                </div>
-            </div>
         </div>
         
         
+        <div class="panel">
+            <div class="panel-heading">
+                <i class="icon-warning"></i> {l s='Unmapped Attributes' mod='attributefeatureconnector'}
+                <span class="badge {if $unmapped_count > 0}badge-danger{else}badge-success{/if}" style="margin-left:8px;">{$unmapped_count}</span>
+                <span class="panel-heading-action">
+                    <a href="{$connector_url}" class="btn btn-primary btn-sm">
+                        <i class="icon-plus"></i> {l s='Create Mapping' mod='attributefeatureconnector'}
+                    </a>
+                </span>
+            </div>
+            <div class="panel-body">
+                {if !empty($unmapped_attributes)}
+                    <div class="alert alert-warning">
+                        {l s='The following attributes have no feature mapping. Products with these attributes will not have any feature automatically assigned.' mod='attributefeatureconnector'}
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>{l s='Attribute Group' mod='attributefeatureconnector'}</th>
+                                    <th>{l s='Attribute' mod='attributefeatureconnector'}</th>
+                                    <th>{l s='Action' mod='attributefeatureconnector'}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {foreach from=$unmapped_attributes item=attr}
+                                    <tr {if $attr@index < 10}class="new-attribute"{/if}>
+                                        <td>{$attr.group_name}</td>
+                                        <td>
+                                            {$attr.attribute_name}
+                                            {if $attr@index < 10}
+                                                <span class="label label-warning" style="margin-left:5px;">{l s='New' mod='attributefeatureconnector'}</span>
+                                            {/if}
+                                        </td>
+                                        <td>
+                                            <a href="{$connector_url}" class="btn btn-default btn-xs">
+                                                <i class="icon-plus"></i> {l s='Map this attribute' mod='attributefeatureconnector'}
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {/foreach}
+                            </tbody>
+                        </table>
+                    </div>
+                {else}
+                    <div class="alert alert-success">
+                        <i class="icon-check"></i> {l s='All attributes are mapped to features.' mod='attributefeatureconnector'}
+                    </div>
+                {/if}
+            </div>
+        </div>
+
         <div class="panel">
             <div class="panel-heading">
                 <i class="icon-history"></i> {l s='Recent Performance Logs' mod='attributefeatureconnector'}
@@ -200,7 +203,6 @@
                 {/if}
             </div>
         </div>
-    </div>
 </div>
 
 {if $has_chart_data}
@@ -325,12 +327,4 @@ $(document).ready(function() {
     margin-bottom: 10px;
 }
 
-.conflict-values {
-    margin: 0;
-    padding-left: 15px;
-}
-
-.btn-group-vertical .btn {
-    margin-bottom: 5px;
-}
 </style>

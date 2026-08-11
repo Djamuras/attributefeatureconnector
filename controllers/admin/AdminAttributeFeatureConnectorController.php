@@ -189,6 +189,8 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             'cron_token' => $cron_token,
             'cron_url' => $cron_url,
             'batch_size' => $batch_size,
+            'realtime_enabled' => (bool)Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_REALTIME'),
+            'update_realtime_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector'),
             'documentation' => $documentation,
             'categories' => $categories,
             'selected_category' => $selected_category,
@@ -287,6 +289,12 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             } else {
                 $this->errors[] = $this->l('Batch size must be greater than 0');
             }
+        } elseif (Tools::isSubmit('update_realtime')) {
+            $realtime = (int)(bool)Tools::getValue('realtime_enabled');
+            Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_REALTIME', $realtime);
+            $this->confirmations[] = $realtime
+                ? $this->l('Real-time processing enabled')
+                : $this->l('Real-time processing disabled');
         } elseif (Tools::isSubmit('submitNewCategory')) {
             $name = Tools::getValue('category_name');
             $description = Tools::getValue('category_description');
@@ -649,130 +657,89 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         $updated = 0;
         $processed = 0;
         $offset = 0;
-        
-        // Get feature information
-        $feature_value = new FeatureValue($id_feature_value);
-        $id_feature = $feature_value->id_feature;
-        
+
+        $id_feature = (int)Db::getInstance()->getValue(
+            'SELECT id_feature FROM `' . _DB_PREFIX_ . 'feature_value`
+             WHERE id_feature_value = ' . (int)$id_feature_value
+        );
+
+        if (!$id_feature) {
+            return ['updated' => 0, 'processed' => 0];
+        }
+
+        $attr_list = implode(',', array_map('intval', $attributes));
+
         while (true) {
-            // Get a batch of products with these attributes
-            $sql = 'SELECT DISTINCT pa.id_product 
-                    FROM ' . _DB_PREFIX_ . 'product_attribute_combination pac
-                    JOIN ' . _DB_PREFIX_ . 'product_attribute pa ON pa.id_product_attribute = pac.id_product_attribute
-                    WHERE pac.id_attribute IN (' . implode(',', array_map('intval', $attributes)) . ')
-                    LIMIT ' . (int)$offset . ', ' . (int)$batch_size;
-            
-            $products = Db::getInstance()->executeS($sql);
-            
-            if (!$products || empty($products)) {
-                break; // No more products to process
+            $products = Db::getInstance()->executeS(
+                'SELECT DISTINCT pa.id_product
+                 FROM `' . _DB_PREFIX_ . 'product_attribute_combination` pac
+                 JOIN `' . _DB_PREFIX_ . 'product_attribute` pa ON pa.id_product_attribute = pac.id_product_attribute
+                 WHERE pac.id_attribute IN (' . $attr_list . ')
+                 LIMIT ' . (int)$offset . ', ' . (int)$batch_size
+            );
+
+            if (!$products) {
+                break;
             }
-            
-            $processed += count($products);
-            
-            // Process this batch
-            foreach ($products as $product) {
-                $id_product = (int)$product['id_product'];
-                
-                // Check if the product already has this feature value
-                $exists = Db::getInstance()->getValue('
-                    SELECT COUNT(*)
-                    FROM ' . _DB_PREFIX_ . 'feature_product
-                    WHERE id_product = ' . $id_product . '
-                    AND id_feature = ' . $id_feature . '
-                    AND id_feature_value = ' . $id_feature_value
-                );
-                
-                if (!$exists) {
-                    // Add feature to product
-                    Db::getInstance()->insert('feature_product', [
-                        'id_feature' => $id_feature,
-                        'id_product' => $id_product,
-                        'id_feature_value' => $id_feature_value,
-                    ]);
-                    $updated++;
-                }
-            }
-            
-            // Move to the next batch
+
+            $product_ids = array_column($products, 'id_product');
+            $processed += count($product_ids);
+            $updated += AttributeFeatureConnector::assignFeatureToProducts($id_feature, $id_feature_value, $product_ids);
             $offset += $batch_size;
-            
-            // Security: avoid infinite loops
+
             if (count($products) < $batch_size) {
                 break;
             }
         }
-        
+
         return ['updated' => $updated, 'processed' => $processed];
     }
     
     protected function undoMapping($id_mapping)
     {
-        $updated = 0;
-        $processed = 0;
-        
-        // Get mapping details
         $query = new DbQuery();
         $query->select('afm.id_feature_value')
             ->from('attribute_feature_mapping', 'afm')
             ->where('afm.id_mapping = ' . (int)$id_mapping);
-        
+
         $result = Db::getInstance()->getRow($query);
-        
+
         if (!$result) {
             return ['success' => false, 'updated' => 0, 'processed' => 0];
         }
-        
-        $id_feature_value = $result['id_feature_value'];
-        
-        // Get feature information
-        $feature_value = new FeatureValue($id_feature_value);
-        $id_feature = $feature_value->id_feature;
-        
-        // Get batch size from configuration
+
+        $id_feature_value = (int)$result['id_feature_value'];
+        $id_feature = (int)Db::getInstance()->getValue(
+            'SELECT id_feature FROM `' . _DB_PREFIX_ . 'feature_value`
+             WHERE id_feature_value = ' . $id_feature_value
+        );
+
         $batch_size = (int)Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_BATCH_SIZE', 50);
+        $updated = 0;
+        $processed = 0;
         $offset = 0;
-        
-        // Process in batches
+
         while (true) {
-            // Get a batch of products with this feature
-            $products_with_feature = Db::getInstance()->executeS('
-                SELECT id_product
-                FROM ' . _DB_PREFIX_ . 'feature_product
-                WHERE id_feature = ' . (int)$id_feature . '
-                AND id_feature_value = ' . (int)$id_feature_value . '
-                LIMIT ' . (int)$offset . ', ' . (int)$batch_size
+            $products = Db::getInstance()->executeS(
+                'SELECT id_product FROM `' . _DB_PREFIX_ . 'feature_product`
+                 WHERE id_feature = ' . $id_feature . ' AND id_feature_value = ' . $id_feature_value . '
+                 LIMIT ' . (int)$offset . ', ' . (int)$batch_size
             );
-            
-            if (!$products_with_feature || empty($products_with_feature)) {
-                break; // No more products to process
+
+            if (!$products) {
+                break;
             }
-            
-            $processed += count($products_with_feature);
-            
-            // Remove features from products in this batch
-            foreach ($products_with_feature as $product) {
-                $id_product = (int)$product['id_product'];
-                
-                Db::getInstance()->delete(
-                    'feature_product',
-                    'id_feature = ' . (int)$id_feature . ' 
-                    AND id_product = ' . (int)$id_product . ' 
-                    AND id_feature_value = ' . (int)$id_feature_value
-                );
-                
-                $updated++;
-            }
-            
-            // Move to the next batch
+
+            $product_ids = array_column($products, 'id_product');
+            $processed += count($product_ids);
+            $updated += AttributeFeatureConnector::removeFeatureFromProducts($id_feature, $id_feature_value, $product_ids);
             $offset += $batch_size;
-            
-            // Security: avoid infinite loops
-            if (count($products_with_feature) < $batch_size) {
+
+            if (count($products) < $batch_size) {
                 break;
             }
         }
-        
+
         return ['success' => true, 'updated' => $updated, 'processed' => $processed];
     }
     
