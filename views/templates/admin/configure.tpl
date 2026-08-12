@@ -35,7 +35,7 @@
         {/if}
         
         {if $mapping_to_edit}
-            <form id="edit_mapping_form" class="form-horizontal" action="{$smarty.server.REQUEST_URI}" method="post">
+            <form id="edit_mapping_form" class="form-horizontal afc-stacked-form" action="{$smarty.server.REQUEST_URI}" method="post">
                 <div class="panel-heading">
                     <i class="icon-pencil"></i> {l s='Edit Mapping' mod='attributefeatureconnector'}: {$mapping_to_edit.feature_name} - {$mapping_to_edit.value}
                 </div>
@@ -98,7 +98,7 @@
                 </div>
             </form>
         {else}
-            <form id="mapping_form" class="form-horizontal" action="{$smarty.server.REQUEST_URI}" method="post">
+            <form id="mapping_form" class="form-horizontal afc-stacked-form" action="{$smarty.server.REQUEST_URI}" method="post">
                 <div class="form-group">
                     <label class="control-label col-lg-3">{l s='Select Feature Value' mod='attributefeatureconnector'}</label>
                     <div class="col-lg-9">

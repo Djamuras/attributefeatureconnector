@@ -305,6 +305,28 @@
     line-height: 1.5;
 }
 
+.bootstrap .afc-stacked-form .form-group {
+    padding: 0 20px;
+}
+.bootstrap .afc-stacked-form .control-label {
+    float: none;
+    display: block;
+    width: 100%;
+    max-width: none;
+    padding: 0;
+    margin: 0 0 8px;
+    text-align: left;
+}
+.bootstrap .afc-stacked-form .col-lg-9 {
+    float: none;
+    width: 100%;
+    max-width: none;
+    padding: 0;
+}
+.bootstrap .afc-stacked-form .select2-container {
+    max-width: none;
+}
+
 /* Attribute picker */
 .afc-attribute-picker {
     border: 1px solid var(--afc-border);
