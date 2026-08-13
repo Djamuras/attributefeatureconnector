@@ -239,7 +239,10 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             }
             
             $this->updateMapping($id_mapping, $selected_attributes);
-            $this->confirmations[] = $this->l('Mapping updated successfully');
+            Tools::redirectAdmin(
+                $this->context->link->getAdminLink('AdminAttributeFeatureConnector') .
+                '&conf=4&afc_message=' . urlencode($this->l('Mapping updated successfully'))
+            );
         } elseif (Tools::isSubmit('regenerate_cron_token')) {
             $new_token = bin2hex(random_bytes(16)); // 32 characters long
             Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_CRON_TOKEN', $new_token);
