@@ -311,6 +311,31 @@
         </form>
     </div>
 
+    <div class="panel">
+        <div class="panel-heading">
+            <i class="icon-envelope"></i> {l s='Naujų atributų pranešimai' mod='attributefeatureconnector'}
+        </div>
+
+        <div class="alert alert-info">
+            {l s='Kai sukuriamas naujas prekės atributas, modulis išsiunčia pranešimą, kad mappingai būtų peržiūrėti.' mod='attributefeatureconnector'}
+        </div>
+
+        <form action="{$smarty.server.REQUEST_URI}" method="post">
+            <div class="form-group">
+                <label class="control-label col-lg-3">{l s='Pranešimų el. paštas' mod='attributefeatureconnector'}</label>
+                <div class="col-lg-9">
+                    <input type="email" name="alert_email" class="form-control" value="{$alert_email|escape:'html':'UTF-8'}">
+                    <p class="help-block">{l s='Palikite tuščią, jei norite naudoti pagrindinį parduotuvės el. paštą.' mod='attributefeatureconnector'}</p>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <button type="submit" name="update_alert_email" class="btn btn-primary pull-right">
+                    <i class="icon-save"></i> {l s='Save' mod='attributefeatureconnector'}
+                </button>
+            </div>
+        </form>
+    </div>
+
     <!-- CRON Job Panel -->
     <div class="panel">
         <div class="panel-heading">
@@ -414,6 +439,9 @@
                                         <a href="{$preview_url}{$mapping.id_mapping}" class="btn btn-info btn-action" title="{l s='Preview Affected Products' mod='attributefeatureconnector'}">
                                             <i class="icon-eye"></i>
                                         </a>
+                                        <a href="{$dry_run_mapping_url}{$mapping.id_mapping}" class="btn btn-default btn-action" title="{l s='Peržiūra be pakeitimų išsaugojimo' mod='attributefeatureconnector'}">
+                                            <i class="icon-search"></i>
+                                        </a>
                                         <a href="{$generate_mapping_url}{$mapping.id_mapping}" class="btn btn-success btn-action" title="{l s='Generate Features' mod='attributefeatureconnector'}">
                                             <i class="icon-refresh"></i>
                                         </a>
@@ -469,6 +497,9 @@
             {/if}
             
             <div class="panel-footer">
+                <a href="{$dry_run_url}" class="btn btn-default">
+                    <i class="icon-search"></i> {l s='Peržiūrėti VISKĄ be pakeitimų' mod='attributefeatureconnector'}
+                </a>
                 <a href="{$generate_url}" class="btn btn-primary" onclick="return confirm('{l s='This will apply all mappings to your products. Continue?' mod='attributefeatureconnector'}');">
                     <i class="icon-refresh"></i> {l s='Generate ALL Features' mod='attributefeatureconnector'}
                 </a>

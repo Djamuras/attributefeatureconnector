@@ -174,6 +174,8 @@
                                     <th>{l s='Mapping ID' mod='attributefeatureconnector'}</th>
                                     <th>{l s='Products Processed' mod='attributefeatureconnector'}</th>
                                     <th>{l s='Products Updated' mod='attributefeatureconnector'}</th>
+                                    <th>{l s='Products Skipped' mod='attributefeatureconnector'}</th>
+                                    <th>{l s='Message' mod='attributefeatureconnector'}</th>
                                     <th>{l s='Execution Time' mod='attributefeatureconnector'}</th>
                                     <th>{l s='Batch Size' mod='attributefeatureconnector'}</th>
                                 </tr>
@@ -186,6 +188,8 @@
                                         <td>{if $log.id_mapping}{$log.id_mapping}{else}-{/if}</td>
                                         <td>{$log.products_processed}</td>
                                         <td>{$log.products_updated}</td>
+                                        <td>{$log.products_skipped|default:0}</td>
+                                        <td>{$log.message|default:'-'}</td>
                                         <td>{$log.execution_time} s</td>
                                         <td>{$log.batch_size}</td>
                                     </tr>

@@ -31,6 +31,12 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
     
     public function renderConfigForm()
     {
+        AttributeFeatureConnector::ensureRuntimeSchema();
+        AttributeFeatureConnector::initializeAttributeNotificationBaseline();
+        if (!$this->module->isRegisteredInHook('actionObjectAttributeAddAfter')) {
+            $this->module->registerHook('actionObjectAttributeAddAfter');
+        }
+
         // Get all features
         $features = Feature::getFeatures($this->context->language->id);
         $feature_options = [];
@@ -163,6 +169,8 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             'selected_attributes' => $selected_attributes,
             'generate_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=generateAllFeatures',
             'generate_mapping_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=generateFeatures&id_mapping=',
+            'dry_run_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=generateAllFeatures&dry_run=1',
+            'dry_run_mapping_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=generateFeatures&dry_run=1&id_mapping=',
             'undo_mapping_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=undoMapping&id_mapping=',
             'preview_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=previewMapping&id_mapping=',
             'delete_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector') . '&action=deleteMapping',
@@ -180,6 +188,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             'cron_url' => $cron_url,
             'batch_size' => $batch_size,
             'realtime_enabled' => (bool)Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_REALTIME'),
+            'alert_email' => Configuration::get('ATTRIBUTE_FEATURE_CONNECTOR_ALERT_EMAIL') ?: Configuration::get('PS_SHOP_EMAIL'),
             'update_realtime_url' => $this->context->link->getAdminLink('AdminAttributeFeatureConnector'),
             'documentation' => $documentation,
             'import_preview' => $this->import_preview,
@@ -261,6 +270,14 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             $this->confirmations[] = $realtime
                 ? $this->l('Real-time processing enabled')
                 : $this->l('Real-time processing disabled');
+        } elseif (Tools::isSubmit('update_alert_email')) {
+            $alert_email = trim((string)Tools::getValue('alert_email'));
+            if ($alert_email !== '' && !Validate::isEmail($alert_email)) {
+                $this->errors[] = $this->l('Enter a valid email address');
+            } else {
+                Configuration::updateValue('ATTRIBUTE_FEATURE_CONNECTOR_ALERT_EMAIL', $alert_email);
+                $this->confirmations[] = $this->l('Notification email saved');
+            }
         } elseif (Tools::isSubmit('preview_import_mappings')) {
             $parsed = $this->parseUploadedImportMappings();
             if (!$parsed['success']) {
@@ -294,42 +311,54 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         } elseif (Tools::getValue('action') === 'exportMappings') {
             $this->exportMappings();
         } elseif (Tools::getValue('action') === 'generateAllFeatures') {
+            $dry_run = (bool)Tools::getValue('dry_run');
             $start_time = microtime(true);
-            $result = $this->generateAllFeatures();
+            $result = $this->generateAllFeatures($dry_run);
             $execution_time = microtime(true) - $start_time;
             
             // Log performance
             AttributeFeatureConnector::logPerformance(
-                'generate_all', 
+                $dry_run ? 'dry_run_generate_all' : 'generate_all',
                 null, 
                 $result['processed'], 
                 $result['updated'],
-                $execution_time
+                $execution_time,
+                null,
+                $result['skipped'],
+                $dry_run ? 'Dry run only. No product features were changed.' : 'Features applied.'
             );
             
             if ($result['success']) {
-                $this->confirmations[] = sprintf($this->l('All features generated successfully. %d products updated.'), $result['updated']);
+                $this->confirmations[] = $dry_run
+                    ? sprintf($this->l('Peržiūra baigta. Patikrinta produktų: %d. Būtų pridėta: %d. Praleista: %d.'), $result['processed'], $result['updated'], $result['skipped'])
+                    : sprintf($this->l('Generavimas baigtas. Patikrinta produktų: %d. Pridėta: %d. Praleista: %d.'), $result['processed'], $result['updated'], $result['skipped']);
             } else {
                 $this->errors[] = $this->l('Error generating features');
             }
         } elseif (Tools::getValue('action') === 'generateFeatures') {
             $id_mapping = (int)Tools::getValue('id_mapping');
             if ($id_mapping) {
+                $dry_run = (bool)Tools::getValue('dry_run');
                 $start_time = microtime(true);
-                $result = $this->generateFeaturesForMapping($id_mapping);
+                $result = $this->generateFeaturesForMapping($id_mapping, null, $dry_run);
                 $execution_time = microtime(true) - $start_time;
                 
                 // Log performance
                 AttributeFeatureConnector::logPerformance(
-                    'generate_single', 
+                    $dry_run ? 'dry_run_generate_single' : 'generate_single',
                     $id_mapping, 
                     $result['processed'], 
                     $result['updated'],
-                    $execution_time
+                    $execution_time,
+                    null,
+                    $result['skipped'],
+                    $dry_run ? 'Dry run only. No product features were changed.' : 'Features applied.'
                 );
                 
                 if ($result['success']) {
-                    $this->confirmations[] = sprintf($this->l('Features for this mapping generated successfully. %d products updated.'), $result['updated']);
+                    $this->confirmations[] = $dry_run
+                        ? sprintf($this->l('Peržiūra baigta. Patikrinta produktų: %d. Būtų pridėta: %d. Praleista: %d.'), $result['processed'], $result['updated'], $result['skipped'])
+                        : sprintf($this->l('Mappingas pritaikytas. Patikrinta produktų: %d. Pridėta: %d. Praleista: %d.'), $result['processed'], $result['updated'], $result['skipped']);
                 } else {
                     $this->errors[] = $this->l('Error generating features for this mapping');
                 }
@@ -750,10 +779,11 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         );
     }
     
-    public function generateAllFeatures()
+    public function generateAllFeatures($dry_run = false)
     {
         $updated = 0;
         $processed = 0;
+        $skipped = 0;
         
         // Get all mappings
         $mappings = [];
@@ -764,7 +794,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         $result = Db::getInstance()->executeS($query);
         
         if (!$result) {
-            return ['success' => false, 'updated' => 0, 'processed' => 0];
+            return ['success' => false, 'updated' => 0, 'processed' => 0, 'skipped' => 0];
         }
         
         // Get batch size from configuration
@@ -773,17 +803,18 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         // Process each mapping in batches
         foreach ($result as $mapping) {
             $id_mapping = $mapping['id_mapping'];
-            $mapping_result = $this->generateFeaturesForMapping($id_mapping, $batch_size);
+            $mapping_result = $this->generateFeaturesForMapping($id_mapping, $batch_size, $dry_run);
             if ($mapping_result['success']) {
                 $updated += $mapping_result['updated'];
                 $processed += $mapping_result['processed'];
+                $skipped += $mapping_result['skipped'];
             }
         }
         
-        return ['success' => true, 'updated' => $updated, 'processed' => $processed];
+        return ['success' => true, 'updated' => $updated, 'processed' => $processed, 'skipped' => $skipped];
     }
     
-    protected function generateFeaturesForMapping($id_mapping, $batch_size = null)
+    protected function generateFeaturesForMapping($id_mapping, $batch_size = null, $dry_run = false)
     {
         $updated = 0;
         $processed = 0;
@@ -798,7 +829,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         $result = Db::getInstance()->executeS($query);
         
         if (!$result) {
-            return ['success' => false, 'updated' => 0, 'processed' => 0];
+            return ['success' => false, 'updated' => 0, 'processed' => 0, 'skipped' => 0];
         }
         
         // Organize the attribute IDs
@@ -815,17 +846,19 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         }
         
         // Process the mapping with batch processing
-        $result = $this->processMappingInBatches($id_feature_value, $attributes, $batch_size);
+        $result = $this->processMappingInBatches($id_feature_value, $attributes, $batch_size, $dry_run);
         $updated = $result['updated'];
         $processed = $result['processed'];
+        $skipped = $result['skipped'];
         
-        return ['success' => true, 'updated' => $updated, 'processed' => $processed];
+        return ['success' => true, 'updated' => $updated, 'processed' => $processed, 'skipped' => $skipped];
     }
     
-    protected function processMappingInBatches($id_feature_value, $attributes, $batch_size)
+    protected function processMappingInBatches($id_feature_value, $attributes, $batch_size, $dry_run = false)
     {
         $updated = 0;
         $processed = 0;
+        $skipped = 0;
         $offset = 0;
 
         $id_feature = (int)Db::getInstance()->getValue(
@@ -834,7 +867,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
         );
 
         if (!$id_feature) {
-            return ['updated' => 0, 'processed' => 0];
+            return ['updated' => 0, 'processed' => 0, 'skipped' => 0];
         }
 
         $attr_list = implode(',', array_map('intval', $attributes));
@@ -854,7 +887,23 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
 
             $product_ids = array_column($products, 'id_product');
             $processed += count($product_ids);
-            $updated += AttributeFeatureConnector::assignFeatureToProducts($id_feature, $id_feature_value, $product_ids);
+
+            $existing = Db::getInstance()->executeS(
+                'SELECT id_product
+                 FROM `' . _DB_PREFIX_ . 'feature_product`
+                 WHERE id_feature = ' . (int)$id_feature . '
+                   AND id_feature_value = ' . (int)$id_feature_value . '
+                   AND id_product IN (' . implode(',', array_map('intval', $product_ids)) . ')'
+            );
+            $existing_ids = $existing ? array_map('intval', array_column($existing, 'id_product')) : [];
+            $new_product_ids = array_values(array_diff(array_map('intval', $product_ids), $existing_ids));
+            $skipped += count($existing_ids);
+
+            if ($dry_run) {
+                $updated += count($new_product_ids);
+            } else {
+                $updated += AttributeFeatureConnector::assignFeatureToProducts($id_feature, $id_feature_value, $new_product_ids);
+            }
             $offset += $batch_size;
 
             if (count($products) < $batch_size) {
@@ -862,7 +911,7 @@ class AdminAttributeFeatureConnectorController extends ModuleAdminController
             }
         }
 
-        return ['updated' => $updated, 'processed' => $processed];
+        return ['updated' => $updated, 'processed' => $processed, 'skipped' => $skipped];
     }
     
     protected function undoMapping($id_mapping)

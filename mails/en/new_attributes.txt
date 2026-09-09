@@ -1,0 +1,7 @@
+Hello,
+
+New attributes were created in {shop_name}. Please review Attribute-Feature Connector mappings and assign them to the correct features.
+
+{attribute_list}
+
+This message was generated automatically.

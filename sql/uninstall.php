@@ -5,6 +5,7 @@ $sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'attribute_feature_mapping_att
 $sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'attribute_feature_mapping`';
 $sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'attribute_feature_mapping_category`';
 $sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'attribute_feature_performance_log`';
+$sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'attribute_feature_new_attribute_notice`';
 $sql[] = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'category_feature_mapping`';
 
 foreach ($sql as $query) {

@@ -1,0 +1,7 @@
+Sveiki,
+
+Parduotuvėje {shop_name} atsirado naujų atributų. Patikrinkite Attribute-Feature Connector mappingus ir priskirkite juos prie reikiamų ypatybių.
+
+{attribute_list}
+
+Šis pranešimas sugeneruotas automatiškai.

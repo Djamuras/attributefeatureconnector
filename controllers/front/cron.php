@@ -29,6 +29,9 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
 
         @set_time_limit(0);
 
+        $notification_detected = AttributeFeatureConnector::detectUnmappedAttributesForNotification(100);
+        $notification_result = AttributeFeatureConnector::sendPendingNewAttributeEmail();
+
         $operation = Tools::getValue('operation', 'all');
 
         switch ($operation) {
@@ -46,6 +49,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
                     'success' => $attribute_result['success'] && $category_result['success'],
                     'updated' => $attribute_result['updated'] + $category_result['updated'],
                     'processed' => $attribute_result['processed'] + $category_result['processed'],
+                    'skipped' => $attribute_result['skipped'] + $category_result['skipped'],
                     'attribute_mappings_processed' => $attribute_result['mappings_processed'],
                     'category_mappings_processed' => $category_result['mappings_processed'],
                     'execution_time' => $attribute_result['execution_time'] + $category_result['execution_time'],
@@ -55,6 +59,13 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
                 break;
         }
 
+        $result['attribute_notifications'] = [
+            'detected' => (int)$notification_detected,
+            'sent' => isset($notification_result['sent']) ? (int)$notification_result['sent'] : 0,
+            'success' => isset($notification_result['success']) ? (bool)$notification_result['success'] : false,
+            'message' => isset($notification_result['message']) ? $notification_result['message'] : '',
+        ];
+
         header('Content-Type: application/json');
         die(json_encode($result));
     }
@@ -63,6 +74,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
     {
         $updated = 0;
         $processed = 0;
+        $skipped = 0;
         $errors = [];
         $start_time = microtime(true);
 
@@ -77,6 +89,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
                 'success' => false,
                 'updated' => 0,
                 'processed' => 0,
+                'skipped' => 0,
                 'mappings_processed' => 0,
                 'message' => 'No attribute mappings found',
                 'execution_time' => $this->getExecutionTime($start_time),
@@ -93,6 +106,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
                 if ($mapping_result['success']) {
                     $updated += $mapping_result['updated'];
                     $processed += $mapping_result['processed'];
+                    $skipped += $mapping_result['skipped'];
                 } else {
                     $errors[] = 'Error processing attribute mapping ID ' . $id_mapping . ': ' . $mapping_result['message'];
                 }
@@ -105,6 +119,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
             'success' => true,
             'updated' => $updated,
             'processed' => $processed,
+            'skipped' => $skipped,
             'mappings_processed' => count($result),
             'errors' => $errors,
             'execution_time' => $this->getExecutionTime($start_time)
@@ -115,6 +130,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
     {
         $updated = 0;
         $processed = 0;
+        $skipped = 0;
         $errors = [];
         $start_time = microtime(true);
 
@@ -129,6 +145,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
                 'success' => false,
                 'updated' => 0,
                 'processed' => 0,
+                'skipped' => 0,
                 'mappings_processed' => 0,
                 'message' => 'No category mappings found',
                 'execution_time' => $this->getExecutionTime($start_time),
@@ -151,6 +168,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
                 if ($mapping_result['success']) {
                     $updated += $mapping_result['updated'];
                     $processed += $mapping_result['processed'];
+                    $skipped += $mapping_result['skipped'];
                 } else {
                     $errors[] = 'Error processing category mapping ID ' . $id_mapping . ': ' . $mapping_result['message'];
                 }
@@ -163,6 +181,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
             'success' => true,
             'updated' => $updated,
             'processed' => $processed,
+            'skipped' => $skipped,
             'mappings_processed' => count($result),
             'errors' => $errors,
             'execution_time' => $this->getExecutionTime($start_time)
@@ -187,6 +206,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
                 'success' => false,
                 'updated' => 0,
                 'processed' => 0,
+                'skipped' => 0,
                 'message' => 'Attribute mapping not found or has no attributes',
                 'execution_time' => $this->getExecutionTime($start_time)
             ];
@@ -201,6 +221,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
                 'success' => false,
                 'updated' => 0,
                 'processed' => 0,
+                'skipped' => 0,
                 'message' => 'No attributes for this mapping',
                 'execution_time' => $this->getExecutionTime($start_time)
             ];
@@ -218,13 +239,16 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
             $counts['processed'],
             $counts['updated'],
             $this->getExecutionTime($start_time),
-            $batch_size
+            $batch_size,
+            $counts['skipped'],
+            'Cron attribute mapping applied.'
         );
 
         return [
             'success' => true,
             'updated' => $counts['updated'],
             'processed' => $counts['processed'],
+            'skipped' => $counts['skipped'],
             'execution_time' => $this->getExecutionTime($start_time)
         ];
     }
@@ -243,6 +267,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
                 'success' => false,
                 'updated' => 0,
                 'processed' => 0,
+                'skipped' => 0,
                 'message' => 'Feature value not found',
                 'execution_time' => $this->getExecutionTime($start_time)
             ];
@@ -261,13 +286,16 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
             $counts['processed'],
             $counts['updated'],
             $this->getExecutionTime($start_time),
-            $batch_size
+            $batch_size,
+            $counts['skipped'],
+            'Cron category mapping applied.'
         );
 
         return [
             'success' => true,
             'updated' => $counts['updated'],
             'processed' => $counts['processed'],
+            'skipped' => $counts['skipped'],
             'execution_time' => $this->getExecutionTime($start_time)
         ];
     }
@@ -279,6 +307,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
     {
         $updated = 0;
         $processed = 0;
+        $skipped = 0;
         $offset = 0;
         $attr_list = implode(',', array_map('intval', $attributes));
 
@@ -297,7 +326,18 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
 
             $product_ids = array_column($products, 'id_product');
             $processed += count($product_ids);
-            $updated += AttributeFeatureConnector::assignFeatureToProducts($id_feature, $id_feature_value, $product_ids);
+
+            $existing = Db::getInstance()->executeS(
+                'SELECT id_product
+                 FROM `' . _DB_PREFIX_ . 'feature_product`
+                 WHERE id_feature = ' . (int)$id_feature . '
+                   AND id_feature_value = ' . (int)$id_feature_value . '
+                   AND id_product IN (' . implode(',', array_map('intval', $product_ids)) . ')'
+            );
+            $existing_ids = $existing ? array_map('intval', array_column($existing, 'id_product')) : [];
+            $new_product_ids = array_values(array_diff(array_map('intval', $product_ids), $existing_ids));
+            $skipped += count($existing_ids);
+            $updated += AttributeFeatureConnector::assignFeatureToProducts($id_feature, $id_feature_value, $new_product_ids);
             $offset += $batch_size;
 
             if (count($products) < $batch_size) {
@@ -305,7 +345,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
             }
         }
 
-        return ['updated' => $updated, 'processed' => $processed];
+        return ['updated' => $updated, 'processed' => $processed, 'skipped' => $skipped];
     }
 
     /**
@@ -315,6 +355,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
     {
         $updated = 0;
         $processed = 0;
+        $skipped = 0;
         $offset = 0;
         $cat_list = implode(',', array_map('intval', $category_ids));
 
@@ -333,7 +374,18 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
 
             $product_ids = array_column($products, 'id_product');
             $processed += count($product_ids);
-            $updated += AttributeFeatureConnector::assignFeatureToProducts($id_feature, $id_feature_value, $product_ids);
+
+            $existing = Db::getInstance()->executeS(
+                'SELECT id_product
+                 FROM `' . _DB_PREFIX_ . 'feature_product`
+                 WHERE id_feature = ' . (int)$id_feature . '
+                   AND id_feature_value = ' . (int)$id_feature_value . '
+                   AND id_product IN (' . implode(',', array_map('intval', $product_ids)) . ')'
+            );
+            $existing_ids = $existing ? array_map('intval', array_column($existing, 'id_product')) : [];
+            $new_product_ids = array_values(array_diff(array_map('intval', $product_ids), $existing_ids));
+            $skipped += count($existing_ids);
+            $updated += AttributeFeatureConnector::assignFeatureToProducts($id_feature, $id_feature_value, $new_product_ids);
             $offset += $batch_size;
 
             if (count($products) < $batch_size) {
@@ -341,7 +393,7 @@ class AttributeFeatureConnectorCronModuleFrontController extends ModuleFrontCont
             }
         }
 
-        return ['updated' => $updated, 'processed' => $processed];
+        return ['updated' => $updated, 'processed' => $processed, 'skipped' => $skipped];
     }
 
     private function getExecutionTime($start_time)

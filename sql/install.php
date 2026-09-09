@@ -26,12 +26,27 @@ $sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'attribute_feature_perfo
     `id_mapping` int(10) unsigned DEFAULT NULL,
     `products_processed` int(10) unsigned NOT NULL DEFAULT 0,
     `products_updated` int(10) unsigned NOT NULL DEFAULT 0,
+    `products_skipped` int(10) unsigned NOT NULL DEFAULT 0,
+    `message` varchar(255) DEFAULT NULL,
     `execution_time` float NOT NULL,
     `memory_usage` int(10) unsigned DEFAULT NULL,
     `batch_size` int(10) unsigned NOT NULL,
     `date_add` datetime NOT NULL,
     PRIMARY KEY (`id_log`),
     INDEX `idx_date` (`date_add`)
+) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4;';
+
+// Track newly created attributes so admins know mappings may need updates.
+$sql[] = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'attribute_feature_new_attribute_notice` (
+    `id_notice` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `id_attribute` int(10) unsigned NOT NULL,
+    `id_attribute_group` int(10) unsigned NOT NULL,
+    `notified` tinyint(1) unsigned NOT NULL DEFAULT 0,
+    `date_add` datetime NOT NULL,
+    `date_notified` datetime DEFAULT NULL,
+    PRIMARY KEY (`id_notice`),
+    UNIQUE KEY `uniq_attribute` (`id_attribute`),
+    INDEX `idx_notified` (`notified`)
 ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8mb4;';
 
 // Create category feature mapping table (with subcategory cascade support)

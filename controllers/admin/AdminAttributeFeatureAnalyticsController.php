@@ -56,6 +56,8 @@ class AdminAttributeFeatureAnalyticsController extends ModuleAdminController
 
     protected function getPerformanceLogs($limit = 100)
     {
+        AttributeFeatureConnector::ensureRuntimeSchema();
+
         $query = new DbQuery();
         $query->select('*')
             ->from('attribute_feature_performance_log')
